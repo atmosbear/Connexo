@@ -15,6 +15,16 @@ function entry(title) {
     return newEntry
   }
 }
+
+/**
+ * Places the given entries into localstorage.
+ * @param {[{title: string, parentTitles: string[], childrenTitles: string[] }]} entries 
+ */
+function save(entries) {
+  const data = JSON.stringify(entries)
+  localStorage.setItem("entries", data)
+  return data
+}
 /**
  * A helper function that returns options for adding relations to entries. 
  * @param {string} entryTitle the title of the entry to give a relation to
