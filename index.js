@@ -103,6 +103,57 @@ function deepishArraysAreEqual(A, B, showComments = false) {
   })
   return isEqual
 }
+/**
+ * Finds the relations from a given entry to all other entries given.
+ * @param {string} entryTitle 
+ * @param {string[]} arrayOfTitlesToFindTheRelationTo 
+ * @returns {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}}
+ */
+function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
+  // d is down, u is up. 
+  // for example dd is 'down down', or 'a child of a child' (a grandchild).
+  function calculateBasic1GenAway() {
+    let d = entry(entryTitle).childrenTitles // children
+    let u = entry(entryTitle).parentTitles // parents
+    return [d, u]
+  }
+  function calculate2GensAway() {
+    // 2 ds or 2 us (all two generations away from current)
+    let dd = [] // grandchildren
+    let uu = [] // grandparents
+    return [dd, uu]
+  }
+
+  function calculateSameGen() {
+    // 1 u, 1 d (within the same generation the current)
+    let du = [] // spouses
+    let ud = [] // siblings
+    return [du, ud]
+  }
+
+  function calculateChildGen() {
+    // 2 ds, 1 u (essentially all children in some way or another)
+    let ddu = [] // children-in-laws
+    let dud = [] // stepchildren
+    let udd = [] // niblings
+    return [ddu, dud, udd]
+  }
+
+  function calculateParentGen() {
+    // 1 d, 2 us (essentially all parents in some way or another)
+    let duu = [] // parents-in-laws
+    let uud = [] // auncles
+    let udu = [] // step-parents, I believe
+    return [duu, uud, udu]
+  }
+  let [d, u] = calculateBasic1GenAway()
+  let [dd, uu] = calculate2GensAway()
+  let [du, ud] = calculateSameGen()
+  let [ddu, dud, udd] = calculateChildGen()
+  let [duu, uud, udu] = calculateParentGen()
+  const relations = { d, u, dd, uu, du, ud, ddu, dud, udd, duu, uud, udu }
+  return relations
+}
 function runTests() {
   /**
    * A shortcut for "console.assert".
@@ -164,6 +215,17 @@ function runTests() {
   function test_arrayEqualsMethod() {
     ensure(!deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red", entries }]), "Nope.")
     ensure(deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red" }]), "Nope.")
+  }
+  function test_getRelations() {
+    entries.length = 0
+    give("A").aChild("B")
+    give("B").aChild("C")
+    give("B").aChild("D")
+    give("B").aParent("Bdad")
+    give("Bdad").aParent("stepson")
+    const relations = getRelations("A", entries.map(e => e.title))
+    ensure(relations.d.includes("B"), "B isn't A's child!")
+    ensure(relations.du.length === 0, "A should not have a spouse.")
   }
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
