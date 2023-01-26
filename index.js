@@ -45,11 +45,21 @@ function loadEntries() {
  * @returns {{aChild(childTitle: string), aParent(parentTitle: string)}}
  */
 function give(entryTitle) {
+  /**
+   * Ensures that something is not within the array before trying to add it; otherwise, does nothing.
+   * @param {any} thingToAdd 
+   * @param {any[]} arrayToAddTo 
+   */
   function addUnlessAlreadyPresent(thingToAdd, arrayToAddTo) {
     if (!arrayToAddTo.includes(thingToAdd)) {
       arrayToAddTo.push(thingToAdd)
     }
   }
+  /**
+   * Checks to see if something is within the array, and removes it if it is.
+   * @param {any} thingToRemove 
+   * @param {any[]} arrayToRemoveFrom 
+   */
   function removeFromArrayIfPresent(thingToRemove, arrayToRemoveFrom) {
     if (arrayToRemoveFrom.includes(thingToRemove)) {
       arrayToRemoveFrom.splice(arrayToRemoveFrom.indexOf(thingToRemove), 1)
