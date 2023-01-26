@@ -1,0 +1,20 @@
+:root {
+  --light-bg-color: black;
+  --dark-bg-color: black;
+}
+
+* {
+  font-family: Inter, "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  font-weight: 200;
+}
+
+body {
+  height: 100vh;
+  margin: 0;
+  background: linear-gradient(
+    -45deg,
+    var(--dark-bg-color),
+    var(--light-bg-color)
+  );
+}

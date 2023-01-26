@@ -309,6 +309,28 @@ function runTests() {
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
+/**
+ * Shortcut for getting CSS variables
+ * @param {string} type 
+ * @returns 
+ */
+function getSProp(type) {
+  return document.querySelector("body")?.style.getPropertyValue(type)
+}
+/**
+ * Shortcut for setting CSS variables
+ * @param {string} type 
+ * @param {string} value 
+ */
+function setSProp(type, value) {
+  document.querySelector("body")?.style.setProperty(type, value)
+}
+function setUpPage(mode = "light") {
+  if (mode === "light") {
+    setSProp("--dark-bg-color", "red")
+  }
+}
+setUpPage()
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
