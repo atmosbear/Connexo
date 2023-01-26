@@ -3,7 +3,7 @@
 /**
  * A user-generated piece of textual information.
  * @param {string} title
- * @returns { {title: string, parentTitles: any[], childrenTitles: any[] }} 
+ * @returns { {title: string, parentTitles: string[], childrenTitles: string[] }} 
  */
 function entry(title) {
   const alreadyExistingEntry = entries.find(ent => ent.title === title)
