@@ -119,11 +119,11 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   let childTs = entry(entryTitle).childrenTitles
   let grandchildEs = childEs.flatMap(childE => childE.childrenTitles.map(gcT => entry(gcT))) // entry(childE.title))
   let grandparentEs = parentEs.flatMap(parentE => parentE.parentTitles.map(gpT => entry(gpT)))
-  // let grandparentEs = parentEs.map(gchildE => entry(gchildE.title))
   let grandchildTs = grandchildEs.map(entry => entry.title)
   let grandparentTs = grandparentEs.map(entry => entry.title)
 
   function calculateBasic1GenAway() {
+    // children and parents - one generation away. There are others one gen away, but these are the simplest.
     let d = entry(entryTitle).childrenTitles // children
     let u = entry(entryTitle).parentTitles // parents
     return [d, u]
@@ -137,36 +137,54 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
 
   function calculateSameGen() {
     // 1 u, 1 d (within the same generation the current)
-    let du = childEs.map(cE => cE.parentTitles).flat().filter(pT => pT !== entryTitle) // spouses
-    let ud = parentEs.map(pE => pE.childrenTitles).flat().filter((cT) => cT !== entryTitle) // siblings
+    let du = childEs
+      .flatMap(cE => cE.parentTitles)
+      .filter(pT => pT !== entryTitle) // spouses
+    let ud = parentEs
+      .flatMap(pE => pE.childrenTitles)
+      .filter((cT) => cT !== entryTitle) // siblings
     return [du, ud]
   }
 
   function calculateChildGen() {
     // 2 ds, 1 u (essentially all children in some way or another)
     let ddu = []
-    // parents in law
-    ddu = grandchildEs.flatMap(gcE => gcE.parentTitles).filter(pilT => !childTs.includes(pilT))
-    console.log("DDU", ddu)
-    // let parLawTitles = grandchildEs.flatMap(gcE => gcE.parentTitles)
-    // ddu = parLawTitles.filter(parLawT => !childTs.includes(parLawT)) // children-in-laws
-
-    let dud = [] // stepchildren
-    let udd = [] // niblings
+    // children in law
+    ddu = grandchildEs
+      .flatMap(gcE => gcE.parentTitles)
+      .filter(childinlawT => !childTs.includes(childinlawT))
+    let dud = childEs // stepchildren
+      .flatMap(cE => cE.parentTitles)
+      .filter(pT => pT !== entryTitle) // ensure we ignore the current entry
+      .flatMap(spT => entry(spT))
+      .flatMap(spE => spE.childrenTitles)
+      .filter(stepcT => !childTs.includes(stepcT))
+    let udd = parentEs // niblings
+      .flatMap(pE => pE.childrenTitles)
+      .filter(cT => cT !== entryTitle) // ensure we ignore the current entry
+      .flatMap(sibT => entry(sibT))
+      .flatMap(sibE => sibE.childrenTitles)
+      .filter(nibT => !childTs.includes(nibT))
+    // is it possible for niblings and stepchildren to be the same? Hmmm...
     return [ddu, dud, udd]
   }
 
   function calculateParentGen() {
     // 1 d, 2 us (essentially all parents in some way or another)
-    let duu = [] // parents-in-laws
-    duu =
+    let duu = // parents-in-laws
       childEs.flatMap((cE) => cE.parentTitles)
         .flatMap(spT => entry(spT))
         .flatMap(spE => spE.parentTitles)
         .filter(pilT => !parentTs.includes(pilT))
-    console.log(duu, "duu")
-    let uud = [] // auncles
-    let udu = [] // step-parents, I believe
+    let uud = parentEs  // auncles
+      .flatMap(pE => pE.parentTitles)
+      .flatMap(pT => entry(pT).childrenTitles)
+      .filter(aunc => !parentTs.includes(aunc))
+    let udu = parentEs // stepparents
+      .flatMap(pE => pE.childrenTitles)
+      .flatMap(sibT => entry(sibT))
+      .flatMap(sibE => sibE.parentTitles)
+      .filter(pT => !parentTs.includes(pT))
     return [duu, uud, udu]
   }
   let [d, u] = calculateBasic1GenAway()
@@ -241,12 +259,7 @@ function runTests() {
   }
   function test_getRelations() {
     entries.length = 0
-    // grandpa
-    // CCC
-    // A, Bdad
-    // B, cat
-    // C, D
-
+    // must test every relation: d, u, dd, uu, du, ud, ddu, dud, udd, duu, uud, and udu
     give("A").aChild("B")
     give("B").aChild("C")
     give("B").aChild("D")
@@ -262,7 +275,6 @@ function runTests() {
     give("G").aParent("N")
     let Arelations = getRelations("A", entries.map(e => e.title))
     let Crelations = getRelations("C", entries.map(e => e.title))
-    // must test every relation: d, u, dd, uu, du, ud, ddu, dud, udd, duu, uud, and udu
     // DO NOT FORGET TO TEST RELATIONS THAT SHOULD _NOT_ BE INCLUDED, LIKE CHILDREN VS NIBLINGS 
     // d - child
     ensure(Arelations.d.includes("B"), "B isn't A's child, but it should be!")
@@ -292,7 +304,8 @@ function runTests() {
     // uud - auncle
     ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!")
   }
-  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations].forEach(test => test()) // run all tests
+  // run all tests
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations].forEach(test => test())
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
