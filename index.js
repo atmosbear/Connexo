@@ -112,6 +112,17 @@ function deepishArraysAreEqual(A, B, showComments = false) {
 function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   // d is down, u is up. 
   // for example dd is 'down down', or 'a child of a child' (a grandchild).
+
+  let parentEs = entry(entryTitle).parentTitles.map(parentT => entry(parentT))
+  let parentTs = entry(entryTitle).parentTitles
+  let childEs = entry(entryTitle).childrenTitles.map(childT => entry(childT))
+  let childTs = entry(entryTitle).childrenTitles
+  let grandchildEs = childEs.flatMap(childE => childE.childrenTitles.map(gcT => entry(gcT))) // entry(childE.title))
+  let grandparentEs = parentEs.flatMap(parentE => parentE.parentTitles.map(gpT => entry(gpT)))
+  // let grandparentEs = parentEs.map(gchildE => entry(gchildE.title))
+  let grandchildTs = grandchildEs.map(entry => entry.title)
+  let grandparentTs = grandparentEs.map(entry => entry.title)
+
   function calculateBasic1GenAway() {
     let d = entry(entryTitle).childrenTitles // children
     let u = entry(entryTitle).parentTitles // parents
@@ -119,21 +130,27 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   }
   function calculate2GensAway() {
     // 2 ds or 2 us (all two generations away from current)
-    let dd = [] // grandchildren
-    let uu = [] // grandparents
+    let dd = grandchildEs.map(e => e.title) // grandchildren
+    let uu = grandparentEs.map(e => e.title) // grandparents
     return [dd, uu]
   }
 
   function calculateSameGen() {
     // 1 u, 1 d (within the same generation the current)
-    let du = [] // spouses
-    let ud = [] // siblings
+    let du = childEs.map(cE => cE.parentTitles).flat().filter(pT => pT !== entryTitle) // spouses
+    let ud = parentEs.map(pE => pE.childrenTitles).flat().filter((cT) => cT !== entryTitle) // siblings
     return [du, ud]
   }
 
   function calculateChildGen() {
     // 2 ds, 1 u (essentially all children in some way or another)
-    let ddu = [] // children-in-laws
+    let ddu = []
+    // parents in law
+    ddu = grandchildEs.flatMap(gcE => gcE.parentTitles).filter(pilT => !childTs.includes(pilT))
+    console.log("DDU", ddu)
+    // let parLawTitles = grandchildEs.flatMap(gcE => gcE.parentTitles)
+    // ddu = parLawTitles.filter(parLawT => !childTs.includes(parLawT)) // children-in-laws
+
     let dud = [] // stepchildren
     let udd = [] // niblings
     return [ddu, dud, udd]
@@ -142,6 +159,12 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   function calculateParentGen() {
     // 1 d, 2 us (essentially all parents in some way or another)
     let duu = [] // parents-in-laws
+    duu =
+      childEs.flatMap((cE) => cE.parentTitles)
+        .flatMap(spT => entry(spT))
+        .flatMap(spE => spE.parentTitles)
+        .filter(pilT => !parentTs.includes(pilT))
+    console.log(duu, "duu")
     let uud = [] // auncles
     let udu = [] // step-parents, I believe
     return [duu, uud, udu]
@@ -218,16 +241,46 @@ function runTests() {
   }
   function test_getRelations() {
     entries.length = 0
+    // grandpa
+    // CCC
+    // A, Bdad
+    // B, cat
+    // C, D
+
     give("A").aChild("B")
     give("B").aChild("C")
     give("B").aChild("D")
     give("B").aParent("Bdad")
-    give("Bdad").aParent("stepson")
-    const relations = getRelations("A", entries.map(e => e.title))
-    ensure(relations.d.includes("B"), "B isn't A's child!")
-    ensure(relations.du.length === 0, "A should not have a spouse.")
+    give("Bdad").aParent("CCC")
+    give("CCC").aParent("grandpa")
+    give("D").aParent("cat")
+    let Arelations = getRelations("A", entries.map(e => e.title))
+    // must test every relation: d, u, dd, uu, du, ud, ddu, dud, udd, duu, uud, and udu
+    // d
+    ensure(Arelations.d.includes("B"), "B isn't A's child!")
+    // u
+    ensure(Arelations.u.includes("cat"), "cat isn't A's child!")
+    // dd
+    ensure(Arelations.dd.includes("C"), "C isn't A's gc!")
+    ensure(Arelations.dd.includes("D"), "D isn't A's gc!")
+    ensure(Arelations.dd.length === 2, "There aren't exactly 2 GCs!")
+    // uu
+    ensure(Arelations.uu.includes("grandpa"), "grandpa was not a gp!")
+    // du
+    ensure(Arelations.du.length !== 0 && Arelations.du.includes("Bdad"), "A should have a spouse.")
+    // ud
+    // ddu
+    ensure(Arelations.ddu.length !== 0 && Arelations.ddu.includes("cat"), "cat isn't in there!")
+    // dud
+    // udd
+    // duu
+    ensure(Arelations.duu.includes("CCC"), "It does not contain CCC")
+    // udu
+    //-------
+    let Brelations = getRelations("B", entries.map(e => e.title))
+    // ensure(Brelations.dud.length !== 0 && Brelations.duu.includes("CCC"), "CCC isn't in there!")
   }
-  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod].forEach(test => test()) // run all tests
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
