@@ -17,25 +17,32 @@ function entry(title) {
 }
 /**
  * A helper function that returns options for adding relations to entries. 
- * @param {string} title the title of the entry to give a relation to
- * @returns {{aChild(childTitle: string), aParent(parentTitle: string)}
+ * @param {string} entryTitle the title of the entry to give a relation to
+ * @returns {{aChild(childTitle: string), aParent(parentTitle: string)}}
  */
-function give(title) {
-  const theEntry = entry(title)
+function give(entryTitle) {
+  function addUnlessAlreadyPresent(thingToAdd, arrayToAddTo) {
+    if (!arrayToAddTo.includes(thingToAdd)) {
+      arrayToAddTo.push(thingToAdd)
+    }
+  }
+  function removeFromArrayIfPresent(thingToRemove, arrayToRemoveFrom) {
+    if (arrayToRemoveFrom.includes(thingToRemove)) {
+      arrayToRemoveFrom.splice(arrayToRemoveFrom.indexOf(thingToRemove), 1)
+    }
+  }
   return {
     aChild(childTitle) {
-      const childEntry = entry(childTitle)
-      if (!theEntry.childrenTitles.includes(childTitle))
-        theEntry.childrenTitles.push(childTitle)
-      if (!childEntry.parentTitles.includes(theEntry.title))
-        childEntry.parentTitles.push(theEntry.title)
+      removeFromArrayIfPresent(childTitle, entry(entryTitle).parentTitles)
+      addUnlessAlreadyPresent(childTitle, entry(entryTitle).childrenTitles)
+      removeFromArrayIfPresent(entryTitle, entry(childTitle).childrenTitles)
+      addUnlessAlreadyPresent(entryTitle, entry(childTitle).parentTitles)
     },
     aParent(parentTitle) {
-      const parentEntry = entry(parentTitle)
-      if (!theEntry.parentTitles.includes(parentTitle))
-        theEntry.parentTitles.push(parentTitle)
-      if (!parentEntry.childrenTitles.includes(theEntry.title))
-        parentEntry.childrenTitles.push(theEntry.title)
+      removeFromArrayIfPresent(parentTitle, entry(entryTitle).childrenTitles)
+      addUnlessAlreadyPresent(parentTitle, entry(entryTitle).parentTitles)
+      removeFromArrayIfPresent(entryTitle, entry(parentTitle).parentTitles)
+      addUnlessAlreadyPresent(entryTitle, entry(parentTitle).childrenTitles)
     }
   }
 }
@@ -59,18 +66,32 @@ function runTests() {
     ensure(entries.length !== 2, "The entry was added twice!")
     ensure(entries.length === 1, "The length should be 1, but it's " + entries.length)
   }
-  function test_give() {
+  function test_parentAndChildGiving() {
+    // test parents
     entries.length = 0
-    entry("hello")
     give("hello").aParent("kittens")
     ensure(entry("kittens").childrenTitles.includes("hello"), "entry 'kittens' does not have the child 'hello'.")
     ensure(entry("hello").parentTitles.includes("kittens"), "entry 'hello' does not have the parent 'kittens'.")
+    // test children
     entries.length = 0
     give("hello").aChild("kittens")
     ensure(entry("hello").childrenTitles.includes("kittens"), "The entry 'hello' does not have the child 'kittens'.")
     ensure(entry("kittens").parentTitles.includes("hello"), "The entry 'kittens' does not have the parents 'hello'.")
   }
-  [test_entry, test_give].forEach(test => test()) // run all tests
+  function test_noParentAndChildDupes() {
+    // parent and child relations to the same entry cannot exist; they are instead just the newest relation defined.
+    give("A").aChild("B")
+    give("B").aChild("A")
+    ensure(!entry("A").childrenTitles.includes("B"), "A should not have B as a title, but it does!")
+    ensure(!entry("B").parentTitles.includes("A"), "B should not have A as a parent, but it does!")
+    ensure(entry("A").parentTitles.includes("B"), "A should have B as a title, but it doesn't!")
+    ensure(entry("B").childrenTitles.includes("A"), "B should have A as a parent, but it doesn't!")
+    ensure(entry("A").childrenTitles.length === 0, "A shouldn't have children, but it does!")
+    ensure(entry("A").parentTitles.length === 1, "A doesn't have exactly 1 parent.")
+    ensure(entry("B").childrenTitles.length === 1, "B should have one child, but it doesn't.")
+    ensure(entry("B").parentTitles.length === 0, "B shouldn't have children, but it does!")
+  }
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
