@@ -26,7 +26,7 @@ function runTests() {
     console.assert(what, message)
   }
   function test_entry() {
-    // the entries array should be clean.
+    // the entries array must start clean.
     entries.length = 0
     // ensure that the entry gets added to the global array
     const helloEntry = entry("hello")
@@ -34,9 +34,10 @@ function runTests() {
     // entries should not be duplicated, instead return the same object
     const helloEntry2 = entry("hello")
     ensure(entries.length !== 2, "The entry was added twice!")
-    ensure(entries.length === 1, "The length should be one, but it's " + entries.length)
+    ensure(entries.length === 1, "The length should be 1, but it's " + entries.length)
   }
-  test_entry()
+  [test_entry].forEach(test => test()) // run all tests
+  entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
 const entries = []
