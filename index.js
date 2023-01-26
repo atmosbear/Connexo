@@ -250,35 +250,47 @@ function runTests() {
     give("A").aChild("B")
     give("B").aChild("C")
     give("B").aChild("D")
-    give("B").aParent("Bdad")
-    give("Bdad").aParent("CCC")
-    give("CCC").aParent("grandpa")
-    give("D").aParent("cat")
+    give("B").aParent("E")
+    give("A").aParent("F")
+    give("F").aChild("G")
+    give("F").aParent("K")
+    give("E").aParent("H")
+    give("E").aChild("L")
+    give("H").aParent("I")
+    give("D").aParent("J")
+    give("G").aChild("M")
+    give("G").aParent("N")
     let Arelations = getRelations("A", entries.map(e => e.title))
+    let Crelations = getRelations("C", entries.map(e => e.title))
     // must test every relation: d, u, dd, uu, du, ud, ddu, dud, udd, duu, uud, and udu
-    // d
-    ensure(Arelations.d.includes("B"), "B isn't A's child!")
-    // u
-    ensure(Arelations.u.includes("cat"), "cat isn't A's child!")
-    // dd
-    ensure(Arelations.dd.includes("C"), "C isn't A's gc!")
-    ensure(Arelations.dd.includes("D"), "D isn't A's gc!")
-    ensure(Arelations.dd.length === 2, "There aren't exactly 2 GCs!")
-    // uu
-    ensure(Arelations.uu.includes("grandpa"), "grandpa was not a gp!")
-    // du
-    ensure(Arelations.du.length !== 0 && Arelations.du.includes("Bdad"), "A should have a spouse.")
-    // ud
-    // ddu
-    ensure(Arelations.ddu.length !== 0 && Arelations.ddu.includes("cat"), "cat isn't in there!")
-    // dud
-    // udd
-    // duu
-    ensure(Arelations.duu.includes("CCC"), "It does not contain CCC")
-    // udu
-    //-------
-    let Brelations = getRelations("B", entries.map(e => e.title))
-    // ensure(Brelations.dud.length !== 0 && Brelations.duu.includes("CCC"), "CCC isn't in there!")
+    // DO NOT FORGET TO TEST RELATIONS THAT SHOULD _NOT_ BE INCLUDED, LIKE CHILDREN VS NIBLINGS 
+    // d - child
+    ensure(Arelations.d.includes("B"), "B isn't A's child, but it should be!")
+    // u - parent
+    ensure(Arelations.u.includes("F"), "F isn't A's parent, but it should be!")
+    // dd - grandchild
+    ensure(Arelations.dd.includes("C"), "C isn't A's grandchild, but it should be!")
+    ensure(Arelations.dd.includes("D"), "D isn't A's grandchild, but it should be!")
+    ensure(Arelations.dd.length === 2, "There aren't exactly 2 grandchildren, as there should be!")
+    // uu - grandparent
+    ensure(Arelations.uu.includes("K"), "K was not a gp as it should be!")
+    // du - spouse
+    ensure(Arelations.du.includes("E"), "A should have E as a spouse!")
+    // ud - sibling
+    ensure(Arelations.ud.includes("G"), "A doesn't have a sibling, but it should!")
+    // ddu - child-in-law
+    ensure(Arelations.ddu.includes("J"), "J isn't in there, but it should be!!")
+    // dud - stepchild
+    ensure(Arelations.dud.includes("L"), "L is not a stepchild, but it should be!")
+    // udd - niblings
+    ensure(Arelations.udd.includes("M"), "M is not a nibling, but it should be!")
+    // duu - parent in law
+    ensure(Arelations.duu.includes("H"), "It does not contain H as a parent in law!")
+    ensure(!Arelations.duu.includes("F"), "F is a parent, and should not be a parent in law!")
+    // udu - stepparent
+    ensure(Arelations.udu.includes("N"), "N is not a stepparent, but it should be!")
+    // uud - auncle
+    ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!")
   }
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
