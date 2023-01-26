@@ -17,13 +17,27 @@ function entry(title) {
 }
 
 /**
- * Places the given entries into localstorage.
- * @param {{title: string, parentTitles: string[], childrenTitles: string[] }[]} entries 
+ * Places the given entries into localstorage, returning their string counterpart.
+ * @param {{title: string, parentTitles: string[], childrenTitles: string[] }[]} entries
+ * @returns {string} the JSON-stringified data. 
  */
 function save(entries) {
   const data = JSON.stringify(entries)
   localStorage.setItem("entries", data)
   return data
+}
+/**
+ * Retrieves the entries from localstorage and returns them as a parsed object.
+ * @returns {{title: string, parentTitles: string[], childrenTitles: string[] }[] | []} the data as an object.
+ */
+function loadEntries() {
+  let newEntries
+  const data = localStorage.getItem("entries")
+  if (data)
+    newEntries = JSON.parse(data)
+  else
+    newEntries = []
+  return newEntries
 }
 /**
  * A helper function that returns options for adding relations to entries. 
@@ -55,6 +69,29 @@ function give(entryTitle) {
       addUnlessAlreadyPresent(entryTitle, entry(parentTitle).childrenTitles)
     }
   }
+}
+/**
+ * Ensures that the shallow parts of an array are equal - doesn't go very deep.
+ * @param {any[]} A 
+ * @param {any[]} B 
+ * @returns {boolean}
+ */
+function deepishArraysAreEqual(A, B, showComments = false) {
+  let m = A.map(a => JSON.stringify(Object.entries(a)))
+  let n = B.map(b => JSON.stringify(Object.entries(b)))
+  let isEqual = true
+  m.forEach(mm => {
+    n.forEach(nn => {
+      if (!n.includes(mm) || !m.includes(nn)) {
+        if (showComments) {
+          console.log("comparing '" + mm + "' and '" + nn + "'")
+          console.log("Does n have mm?", n.includes(mm))
+          console.log("Does m have nn?", m.includes(nn))
+        } isEqual = false
+      }
+    })
+  })
+  return isEqual
 }
 function runTests() {
   /**
@@ -102,20 +139,27 @@ function runTests() {
     ensure(entry("B").childrenTitles.length === 1, "B should have one child, but it doesn't.")
     ensure(entry("B").parentTitles.length === 0, "B shouldn't have children, but it does!")
   }
-  function test_saving() {
+  function test_saving_and_loading() {
     entries.length = 0
     give("A").aChild("B")
     give("B").aChild("C")
     give("A").aChild("D")
     give("C").aParent("E")
-    let dataBeforeSavingAndLoading = JSON.stringify(entries)
-    let dataAfterSavingAndLoading = load(save(entries))
-    ensure(dataBeforeSavingAndLoading === dataAfterSavingAndLoading, "The entries being loaded after are NOT the same as the entries that were saved!")
+    const dataBeforeSavingAndLoading = entries
+    const dataAfterSavingAndLoading = loadEntries()
+    ensure(dataAfterSavingAndLoading !== undefined && dataAfterSavingAndLoading !== null, "The data doesn't exist!")
+    ensure(deepishArraysAreEqual(dataBeforeSavingAndLoading, dataAfterSavingAndLoading), "The entries being loaded after are NOT the same as the entries that were saved!")
+    entries.length = 0
   }
-  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes].forEach(test => test()) // run all tests
+  function test_arrayEqualsMethod() {
+    ensure(!deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red", entries }]), "Nope.")
+    ensure(deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red" }]), "Nope.")
+  }
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
-const entries = []
+let entries = []
 runTests()
+entries = loadEntries()
