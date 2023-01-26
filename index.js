@@ -7,5 +7,8 @@
  */
 function entry(title) {
   const newEntry = { title, parents: [], children: [] }
+  entries.push(entry)
   return newEntry
 }
+
+const entries = []
