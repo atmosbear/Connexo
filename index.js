@@ -79,6 +79,7 @@ function runTests() {
     ensure(entry("kittens").parentTitles.includes("hello"), "The entry 'kittens' does not have the parents 'hello'.")
   }
   function test_noParentAndChildDupes() {
+    entries.length = 0
     // parent and child relations to the same entry cannot exist; they are instead just the newest relation defined.
     give("A").aChild("B")
     give("B").aChild("A")
@@ -90,6 +91,16 @@ function runTests() {
     ensure(entry("A").parentTitles.length === 1, "A doesn't have exactly 1 parent.")
     ensure(entry("B").childrenTitles.length === 1, "B should have one child, but it doesn't.")
     ensure(entry("B").parentTitles.length === 0, "B shouldn't have children, but it does!")
+  }
+  function test_saving() {
+    entries.length = 0
+    give("A").aChild("B")
+    give("B").aChild("C")
+    give("A").aChild("D")
+    give("C").aParent("E")
+    let dataBeforeSavingAndLoading = JSON.stringify(entries)
+    let dataAfterSavingAndLoading = load(save(entries))
+    ensure(dataBeforeSavingAndLoading === dataAfterSavingAndLoading, "The entries being loaded after are NOT the same as the entries that were saved!")
   }
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes].forEach(test => test()) // run all tests
   entries.length = 0 // ensure the entries are reset before ending tests.
