@@ -18,7 +18,7 @@ function entry(title) {
 
 /**
  * Places the given entries into localstorage.
- * @param {[{title: string, parentTitles: string[], childrenTitles: string[] }]} entries 
+ * @param {{title: string, parentTitles: string[], childrenTitles: string[] }[]} entries 
  */
 function save(entries) {
   const data = JSON.stringify(entries)
@@ -116,5 +116,6 @@ function runTests() {
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
+/** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 const entries = []
 runTests()
