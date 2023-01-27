@@ -325,19 +325,19 @@ function getSProp(type) {
 function setSProp(type, value) {
   document.querySelector("body")?.style.setProperty(type, value)
 }
-function setUpPage(mode = "light") {
+function setUpPage(mode = "lightblue") {
   if (mode === "lightblue") {
     setSProp("--entry-text", "white")
     setSProp("--header-text", "white")
     setSProp("--entry-p", "cornflowerblue")
-    setSProp("--entry-s", "#bbf")
+    setSProp("--entry-s", "darkblue")
     setSProp("--hover-entry-p", "#9bb")
     setSProp("--hover-entry-s", "#9ff")
     setSProp("--focused-entry-p", "#f91")
     setSProp("--focused-entry-s", "#fc8")
     setSProp("--focused-entry-text", "white")
-    setSProp("--bg-p", "cornflowerblue")
-    setSProp("--bg-s", "darkblue")
+    setSProp("--bg-p", "rgb(114, 187, 207)")
+    setSProp("--bg-s", "rgb(73, 105, 141)")
   } else if (mode === "darkblue") {
     setSProp("--header-text", "white")
     setSProp("--entry-p", "darkblue")
@@ -409,10 +409,10 @@ entries = loadEntries()
 // test for design:
 let entrydiv = document.createElement("div")
 entrydiv.classList.add("entry")
-entrydiv.innerText = "hi"
+entrydiv.innerText = "I'm testing this entry"
 document.querySelector(".column")?.appendChild(entrydiv)
 let entrydiv2 = document.createElement("div")
 entrydiv2.classList.add("entry")
 entrydiv2.classList.add("focused")
-entrydiv2.innerText = "hi"
+entrydiv2.innerText = "This is a focused entry"
 document.querySelector(".column")?.appendChild(entrydiv2)
