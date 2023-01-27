@@ -317,6 +317,7 @@ function runTests() {
 function getSProp(type) {
   return document.querySelector("body")?.style.getPropertyValue(type)
 }
+
 /**
  * Shortcut for setting CSS variables
  * @param {string} type 
@@ -325,94 +326,95 @@ function getSProp(type) {
 function setSProp(type, value) {
   document.querySelector("body")?.style.setProperty(type, value)
 }
-function setUpPage(mode = "lightblue") {
-  if (mode === "lightblue") {
-    setSProp("--entry-text", "white")
-    setSProp("--header-text", "white")
-    setSProp("--entry-p", "cornflowerblue")
-    setSProp("--entry-s", "darkblue")
-    setSProp("--hover-entry-p", "#9bb")
-    setSProp("--hover-entry-s", "#9ff")
-    setSProp("--focused-entry-p", "#f91")
-    setSProp("--focused-entry-s", "#fc8")
-    setSProp("--focused-entry-text", "white")
-    setSProp("--bg-p", "rgb(114, 187, 207)")
-    setSProp("--bg-s", "rgb(73, 105, 141)")
-  } else if (mode === "darkblue") {
-    setSProp("--header-text", "white")
-    setSProp("--entry-p", "darkblue")
-    setSProp("--entry-s", "blue")
-    setSProp("--entry-text", "white")
-    setSProp("--hover-entry-p", "blue")
-    setSProp("--hover-entry-s", "#63f")
-    setSProp("--focused-entry-p", "orange")
-    setSProp("--focused-entry-s", "#f91")
-    setSProp("--focused-entry-text", "black")
-    setSProp("--bg-p", "midnightblue")
-    setSProp("--bg-s", "#112283")
-  } else if (mode === "rose") {
-    setSProp("--header-text", "white")
-    setSProp("--entry-p", "#911")
-    setSProp("--entry-s", "#b11")
-    setSProp("--entry-text", "white")
-    setSProp("--hover-entry-p", "#fa1")
-    setSProp("--hover-entry-s", "#933")
-    setSProp("--focused-entry-p", "#fe0")
-    setSProp("--focused-entry-s", "#981")
-    setSProp("--focused-entry-text", "red")
-    setSProp("--bg-p", "#fdd")
-    setSProp("--bg-s", "#755")
-  } else if (mode === "forest") {
-    setSProp("--header-text", "white")
-    setSProp("--entry-p", "#131")
-    setSProp("--entry-s", "#151")
-    setSProp("--entry-text", "white")
-    setSProp("--hover-entry-p", "white")
-    setSProp("--hover-entry-s", "white")
-    setSProp("--focused-entry-p", "white")
-    setSProp("--focused-entry-s", "white")
-    setSProp("--focused-entry-text", "white")
-    setSProp("--bg-p", "gray")
-    setSProp("--bg-s", "gray")
-  } else if (mode === "purple") {
-    setSProp("--header-text", "white")
-    setSProp("--entry-p", "#318")
-    setSProp("--entry-s", "#908")
-    setSProp("--entry-text", "white")
-    setSProp("--hover-entry-p", "white")
-    setSProp("--hover-entry-s", "white")
-    setSProp("--focused-entry-p", "white")
-    setSProp("--focused-entry-s", "white")
-    setSProp("--focused-entry-text", "white")
-    setSProp("--bg-p", "gray")
-    setSProp("--bg-s", "gray")
-  } else if (mode === "smoke") {
-    // modeled after fire
-    setSProp("--header-text", "#ab8")
-    setSProp("--entry-p", "gray")
-    setSProp("--entry-s", "darkgray")
-    setSProp("--entry-text", "white")
-    setSProp("--hover-entry-p", "#f80")
-    setSProp("--hover-entry-s", "#931")
-    setSProp("--focused-entry-p", "#ab8")
-    setSProp("--focused-entry-s", "#f91")
-    setSProp("--focused-entry-text", "black")
-    setSProp("--bg-p", "darkslategray")
-    setSProp("--bg-s", "lightblue")
-  }
+function setColorTheme(theme) {
+  setSProp("--header-text", theme.headerText)
+  setSProp("--entry-p", theme.entryP)
+  setSProp("--entry-s", theme.entryS)
+  setSProp("--entry-text", theme.entryText)
+  setSProp("--hover-entry-p", theme.hoverEntryP)
+  setSProp("--hover-entry-s", theme.hoverEntryS)
+  setSProp("--focused-entry-p", theme.focusedEntryP)
+  setSProp("--focused-entry-s", theme.focusedEntryS)
+  setSProp("--focused-entry-text", theme.focusedEntryText)
+  setSProp("--bg-p", theme.bgP)
+  setSProp("--bg-s", theme.bgS)
 }
-setUpPage("lightblue")
+let blueDarkTheme = {
+  headerText: "#DDFFFF",
+  entryP: "#0357c5",
+  entryS: "#134095",
+  entryText: "white",
+  hoverEntryP: "#135795",
+  hoverEntryS: "#00344B",
+  focusedEntryP: "#B37410",
+  focusedEntryS: "#E49A26",
+  focusedEntryText: "white",
+  bgP: "#10509B",
+  bgS: "#30344B"
+}
+let THEME_TEMPLATE = {
+  headerText: "white",
+  entryP: "white",
+  entryS: "white",
+  entryText: "white",
+  hoverEntryP: "white",
+  hoverEntryS: "white",
+  focusedEntryP: "white",
+  focusedEntryS: "white",
+  focusedEntryText: "white",
+  bgP: "white",
+  bgS: "white"
+}
+let smokeTheme = {
+  headerText: "#ab8",
+  entryP: "#593B38",
+  entryS: "#2E2C25",
+  entryText: "white",
+  hoverEntryP: "#f80",
+  hoverEntryS: "#931",
+  focusedEntryS: "#D39F75",
+  focusedEntryP: "#AD7345",
+  focusedEntryText: "black",
+  bgP: "darkslategray",
+  bgS: "lightblue"
+}
+let purpleTheme = {
+  headerText: "white",
+  entryP: "#4A2E3C",
+  entryS: "#441C30",
+  entryText: "#fee",
+  focusedEntryS: "#AA3C32",
+  focusedEntryP: "#3F1011",
+  hoverEntryP: "#35263B",
+  hoverEntryS: "#2E1836",
+  bgP: "#725B7A",
+  bgS: "#E6BAD0"
+  // #6A123D #460023 #D38DAF  #8D2F5D #B05883
+}
+setColorTheme(blueDarkTheme)
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
 entries = loadEntries()
 // test for design:
-let entrydiv = document.createElement("div")
-entrydiv.classList.add("entry")
-entrydiv.innerText = "I'm testing this entry"
-document.querySelector(".column")?.appendChild(entrydiv)
+let i = 0
+while (i < 3) {
+  i++
+  let entrydiv = document.createElement("div")
+  entrydiv.classList.add("entry")
+  entrydiv.innerText = "I'm testing this entry"
+  document.querySelector(".column")?.appendChild(entrydiv)
+}
 let entrydiv2 = document.createElement("div")
 entrydiv2.classList.add("entry")
 entrydiv2.classList.add("focused")
 entrydiv2.innerText = "This is a focused entry"
 document.querySelector(".column")?.appendChild(entrydiv2)
+i = 0
+while (i < 3) {
+  i++
+  let entrydiv = document.createElement("div")
+  entrydiv.classList.add("entry")
+  entrydiv.innerText = "I'm testing this entry"
+  document.querySelector(".column")?.appendChild(entrydiv)
+}
