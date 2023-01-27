@@ -326,11 +326,24 @@ function setSProp(type, value) {
   document.querySelector("body")?.style.setProperty(type, value)
 }
 function setUpPage(mode = "light") {
-  if (mode === "light") {
-    setSProp("--dark-bg-color", "red")
+  if (mode === "lightblue") {
+    setSProp("--dark-bg-color", "darkblue")
+    setSProp("--light-bg-color", "cornflowerblue")
+  } else if (mode === "darkblue") {
+    setSProp("--dark-bg-color", "midnightblue")
+    setSProp("--light-bg-color", "#112283")
+  } else if (mode === "red") {
+    setSProp("--dark-bg-color", "#511")
+    setSProp("--light-bg-color", "#b11")
+  } else if (mode === "green") {
+    setSProp("--dark-bg-color", "#131")
+    setSProp("--light-bg-color", "#151")
+  } else if (mode === "purple") {
+    setSProp("--dark-bg-color", "#318")
+    setSProp("--light-bg-color", "#908")
   }
 }
-setUpPage()
+setUpPage("lightblue")
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
