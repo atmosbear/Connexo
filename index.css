@@ -1,20 +1,70 @@
 :root {
   --light-bg-color: black;
   --dark-bg-color: black;
+  --glassy-bg: rgba(0, 0, 0, 0.3);
+  --lighter-glassy-bg: rgba(0, 0, 0, 0.2);
+  --hover-entry-top: black
+  --hover-entry-bot: black
+  --entry-top: black
+  --entry-bot: black
 }
 
 * {
   font-family: Inter, "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
     "Lucida Sans", Arial, sans-serif;
   font-weight: 200;
+  box-sizing: content-box;
+  color: white;
 }
 
 body {
   height: 100vh;
+  width: 100vw;
   margin: 0;
   background: linear-gradient(
     -45deg,
     var(--dark-bg-color),
     var(--light-bg-color)
   );
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto;
+}
+
+.column,
+.header {
+  /* background-color: var(--glassy-bg); */
+  background: linear-gradient(0deg, var(--glassy-bg), var(--lighter-glassy-bg));
+}
+
+.column {
+  height: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 10px;
+}
+
+.header {
+  height: 2rem;
+  font-size: 1.2rem;
+  padding-top: 0.3rem;
+  
+  margin-bottom: 2px;
+  padding-left: 5px;
+}
+
+.entry:hover {
+  background: linear-gradient(180deg, var(--hover-entry-top), var(--hover-entry-bot));
+}
+
+.entry {
+  background: linear-gradient(180deg, var(--entry-top), var(--entry-bot));
+  color: black;
+  border-radius: 5px;
+  text-align: center;
+  padding: 3px;
+  cursor: pointer;
 }

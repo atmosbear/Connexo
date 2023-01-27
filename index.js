@@ -326,6 +326,10 @@ function setSProp(type, value) {
   document.querySelector("body")?.style.setProperty(type, value)
 }
 function setUpPage(mode = "light") {
+  setSProp("--entry-top", "white")
+  setSProp("--entry-bot", "#ffd")
+  setSProp("--hover-entry-bot", "lightblue")
+  setSProp("--hover-entry-top", "cornflowerblue")
   if (mode === "lightblue") {
     setSProp("--dark-bg-color", "darkblue")
     setSProp("--light-bg-color", "cornflowerblue")
@@ -343,8 +347,13 @@ function setUpPage(mode = "light") {
     setSProp("--light-bg-color", "#908")
   }
 }
-setUpPage("lightblue")
+setUpPage("purple")
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
 entries = loadEntries()
+// test for design:
+let entrydiv = document.createElement("div")
+entrydiv.classList.add("entry")
+entrydiv.innerText = "hi"
+document.querySelector(".column")?.appendChild(entrydiv)
