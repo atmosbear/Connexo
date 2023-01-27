@@ -326,16 +326,24 @@ function setSProp(type, value) {
   document.querySelector("body")?.style.setProperty(type, value)
 }
 function setUpPage(mode = "light") {
-  setSProp("--entry-top", "white")
-  setSProp("--entry-bot", "#ffd")
-  setSProp("--hover-entry-bot", "lightblue")
-  setSProp("--hover-entry-top", "cornflowerblue")
   if (mode === "lightblue") {
+    setSProp("--entry-text", "white")
+    setSProp("--header-text", "white")
     setSProp("--dark-bg-color", "darkblue")
     setSProp("--light-bg-color", "cornflowerblue")
+    setSProp("--entry-top", "cornflowerblue")
+    setSProp("--entry-bot", "#bbf")
+    setSProp("--hover-entry-top", "#9bb")
+    setSProp("--hover-entry-bot", "#9ff")
+    setSProp("--focused-entry-top", "#f91")
+    setSProp("--focused-entry-bot", "#fc8")
   } else if (mode === "darkblue") {
     setSProp("--dark-bg-color", "midnightblue")
     setSProp("--light-bg-color", "#112283")
+    setSProp("--entry-top", "cornflowerblue")
+    setSProp("--entry-bot", "#bbf")
+    setSProp("--hover-entry-bot", "#fda")
+    setSProp("--hover-entry-top", "cornflowerblue")
   } else if (mode === "red") {
     setSProp("--dark-bg-color", "#511")
     setSProp("--light-bg-color", "#b11")
@@ -347,7 +355,7 @@ function setUpPage(mode = "light") {
     setSProp("--light-bg-color", "#908")
   }
 }
-setUpPage("purple")
+setUpPage("darkblue")
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()

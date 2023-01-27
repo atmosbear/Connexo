@@ -7,6 +7,9 @@
   --hover-entry-bot: black
   --entry-top: black
   --entry-bot: black
+  --focused-entry-top: black
+  --focused-entry-bot: black
+  --header-text: black
 }
 
 * {
@@ -14,7 +17,11 @@
     "Lucida Sans", Arial, sans-serif;
   font-weight: 200;
   box-sizing: content-box;
-  color: white;
+  color: var(--header-text);
+}
+
+.focused-entry{
+  background: linear-gradient(0deg, var(--focused-entry-top), var(--focused-entry-bot));
 }
 
 body {
@@ -61,7 +68,8 @@ body {
 
 .entry {
   background: linear-gradient(180deg, var(--entry-top), var(--entry-bot));
-  color: black;
+  color: var(--entry-text);
+  text-shadow: black 1px 1px 1px;
   border-radius: 5px;
   text-align: center;
   padding: 3px;
