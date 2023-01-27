@@ -1,12 +1,16 @@
 :root {
-  --light-bg-color: black;
-  --dark-bg-color: black;
+  --bg-p: black;
+  --bg-s: black;
   --glassy-bg: rgba(0, 0, 0, 0.3);
   --lighter-glassy-bg: rgba(0, 0, 0, 0.2);
-  --hover-entry-top: black
-  --hover-entry-bot: black
-  --entry-top: black
-  --entry-bot: black
+  --hover-entry-p: black;
+  --hover-entry-s: black;
+  --entry-p: black;
+  --entry-s: black;
+  --focused-entry-p: black;
+  --focused-entry-s: black;
+  --header-text: black;
+  --focused-entry-text: black;
 }
 
 * {
@@ -14,18 +18,14 @@
     "Lucida Sans", Arial, sans-serif;
   font-weight: 200;
   box-sizing: content-box;
-  color: white;
+  color: var(--header-text);
 }
 
 body {
   height: 100vh;
   width: 100vw;
   margin: 0;
-  background: linear-gradient(
-    -45deg,
-    var(--dark-bg-color),
-    var(--light-bg-color)
-  );
+  background: linear-gradient(-45deg, var(--bg-s), var(--bg-p));
 }
 
 #grid {
@@ -56,14 +56,31 @@ body {
 }
 
 .entry:hover {
-  background: linear-gradient(180deg, var(--hover-entry-top), var(--hover-entry-bot));
+  background: linear-gradient(
+    180deg,
+    var(--hover-entry-p),
+    var(--hover-entry-s)
+  );
 }
 
 .entry {
-  background: linear-gradient(180deg, var(--entry-top), var(--entry-bot));
-  color: black;
+  background: linear-gradient(180deg, var(--entry-p), var(--entry-s));
+  color: var(--entry-text);
+  text-shadow: black 1px 1px 2px;
   border-radius: 5px;
   text-align: center;
-  padding: 3px;
+  padding: 8px;
+  margin-bottom: 10px;
   cursor: pointer;
+  font-weight: 400;
+}
+
+.focused {
+  background: linear-gradient(
+    0deg,
+    var(--focused-entry-p),
+    var(--focused-entry-s)
+  );
+  /* border: 1px solid #ffa; */
+  color: var(--focused-entry-text);
 }
