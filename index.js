@@ -376,10 +376,7 @@ function createElementForEntry(/** @type {string} */ actualTitle, /** @type {str
     entryElement.innerText = altTitle ?? actualTitle
     entryElement.onclick = () => {
       clearColumns()
-      // let rels = getRelations("A", entries.map(e => e.title))
-      // renderEntries("A", rels)
       renderEntries(actualTitle, getRelations(actualTitle, entries.map(e => e.title)))
-      // console.log(entries)
     }
     let columnElement = document.querySelectorAll(".column")[col]
     columnElement.appendChild(entryElement)
