@@ -84,3 +84,10 @@ body {
   /* border: 1px solid #ffa; */
   color: var(--focused-entry-text);
 }
+
+canvas {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+}

@@ -418,3 +418,8 @@ while (i < 3) {
   entrydiv.innerText = "I'm testing this entry"
   document.querySelector(".column")?.appendChild(entrydiv)
 }
+let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
+let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
+canvas.height = innerHeight;
+canvas.width = innerWidth
+context.fillRect(100, 100, 500, 10)
