@@ -304,8 +304,11 @@ function runTests() {
     // uud - auncle
     ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!")
   }
+  function test_entryElements() {
+    createElementForEntry("cat", "u")
+  }
   // run all tests
-  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations].forEach(test => test())
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElements].forEach(test => test())
   entries.length = 0 // ensure the entries are reset before ending tests.
 }
 
@@ -396,25 +399,19 @@ setColorTheme(blueDarkTheme)
 let entries = []
 runTests()
 entries = loadEntries()
-// test for design:
-let i = 0
-while (i < 3) {
-  i++
-  let entrydiv = document.createElement("div")
-  entrydiv.classList.add("entry")
-  entrydiv.innerText = "I'm testing this entry"
-  document.querySelector(".column")?.appendChild(entrydiv)
-}
-let entrydiv2 = document.createElement("div")
-entrydiv2.classList.add("entry")
-entrydiv2.classList.add("focused")
-entrydiv2.innerText = "This is a focused entry"
-document.querySelector(".column")?.appendChild(entrydiv2)
-i = 0
-while (i < 3) {
-  i++
-  let entrydiv = document.createElement("div")
-  entrydiv.classList.add("entry")
-  entrydiv.innerText = "I'm testing this entry"
-  document.querySelector(".column")?.appendChild(entrydiv)
+function createElementForEntry(title, relationToFocused) {
+  console.log(relationToFocused)
+  let col
+  if (["u", "duu", "uud", "udu"].includes(relationToFocused)) {
+    col = 1
+  } else if (["d", "udd", "ddu", "dud"].includes(relationToFocused)) {
+    col = 2
+  }
+  if (col) {
+    let entryElement = document.createElement("div")
+    entryElement.classList.add("entry", "")
+    entryElement.innerText = title
+    let columnElement = document.querySelectorAll(".column")[col]
+    columnElement.appendChild(entryElement)
+  }
 }
