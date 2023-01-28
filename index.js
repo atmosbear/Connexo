@@ -334,25 +334,26 @@ function runTests() {
     give("D").aParent("J")
     give("G").aChild("M")
     give("G").aParent("N")
-    let rels = getRelations("A", entries.map(e => e.title))
-    renderEntries("A", rels)
+    renderEntries("K")
   }
   // run all tests
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElementsLocation, test_extraneousRelationsRenderToo].forEach(test => test())
   // entries.length = 0 // ensure the entries are reset before ending tests.
 }
-function renderEntries(/** @type {string} */ focusedTitle, /** @type {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}} */ relations) {
+function renderEntries(/** @type {string} */ focusedTitle) {
+  /** @type {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}} */
+  let relations = getRelations(focusedTitle, entries.map(e => e.title))
   let focused = entry(focusedTitle)
   createElementForEntry(focusedTitle, "self")
   let rels = Object.entries(relations).forEach(relationArray => {
-    relationArray[1].forEach(kind => createElementForEntry(kind, relationArray[0])) //, kind + " - " + relationArray[0]))
+    relationArray[1].forEach(kind => {
+      createElementForEntry(kind, relationArray[0])
+      let color = ["green", "red", "blue", "orange", "black", "white"]
+      context.strokeStyle = color[Math.floor(Math.random() * color.length)]
+      drawLink(focusedTitle, kind)
+    })
   })
 }
-setColorTheme(blueDarkTheme)
-/** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
-let entries = []
-runTests()
-entries = [...entries, ...getFromLocalStorage()]
 function createElementForEntry(/** @type {string} */ actualTitle, /** @type {string} */ relationToFocused, /** @type {string} */ altTitle) {
   let col
   if (relationToFocused === "uu") {
@@ -376,7 +377,7 @@ function createElementForEntry(/** @type {string} */ actualTitle, /** @type {str
     entryElement.innerText = altTitle ?? actualTitle
     entryElement.onclick = () => {
       clearColumns()
-      renderEntries(actualTitle, getRelations(actualTitle, entries.map(e => e.title)))
+      renderEntries(actualTitle) //, getRelations(actualTitle, entries.map(e => e.title)))
     }
     let columnElement = document.querySelectorAll(".column")[col]
     columnElement.appendChild(entryElement)
@@ -388,12 +389,9 @@ function clearColumn(/** @type {number} */ num) {
   document.querySelectorAll(".column")[num].replaceChildren()
 }
 function clearColumns() {
+  context.clearRect(0, 0, canvas.width, canvas.height);
   [0, 1, 2, 3, 4].forEach(num => clearColumn(num))
 }
-let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
-let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
-canvas.height = innerHeight;
-canvas.width = innerWidth
 // context.fillRect(100, 100, 500, 10)
 function drawLink(leftEntryTitle, rightEntryTitle) {
   let LEnt = entry(leftEntryTitle)
@@ -410,6 +408,7 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
      * @param {number} y 
      */
     function drawHorizontalLine(x, x2, y) {
+      context.beginPath()
       context.moveTo(x, y)
       context.lineTo(x2, y)
       context.stroke()
@@ -421,6 +420,7 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
      * @param {number} y 
      */
     function drawVerticalLine(y, y2, x) {
+      context.beginPath()
       context.moveTo(x, y)
       context.lineTo(x, y2)
       context.stroke()
@@ -469,5 +469,14 @@ function findNumpadCoords(element) {
   nine = { x: three.x, y: seven.y };
   return { one, two, three, four, five, six, seven, eight, nine };
 }
+let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
+let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
+canvas.height = innerHeight;
+canvas.width = innerWidth
 context.lineWidth = 2
 context.strokeStyle = "gold"
+setColorTheme(blueDarkTheme)
+/** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
+let entries = []
+runTests()
+entries = [...entries, ...getFromLocalStorage()]
