@@ -31,7 +31,7 @@ function save(entries) {
  * Retrieves the entries from localstorage and returns them as a parsed object.
  * @returns {{title: string, parentTitles: string[], childrenTitles: string[] }[] | []} the data as an object.
  */
-function loadEntries() {
+function getFromLocalStorage() {
   let newEntries
   const data = localStorage.getItem("entries")
   if (data)
@@ -249,7 +249,7 @@ function runTests() {
     give("A").aChild("D")
     give("C").aParent("E")
     const dataBeforeSavingAndLoading = entries
-    const dataAfterSavingAndLoading = loadEntries()
+    const dataAfterSavingAndLoading = getFromLocalStorage()
     ensure(dataAfterSavingAndLoading !== undefined && dataAfterSavingAndLoading !== null, "The data doesn't exist!")
     ensure(deepishArraysAreEqual(dataBeforeSavingAndLoading, dataAfterSavingAndLoading), "The entries being loaded after are NOT the same as the entries that were saved!")
     entries.length = 0
@@ -305,7 +305,8 @@ function runTests() {
     // uud - auncle
     ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!")
   }
-  function test_entryElements() {
+  function test_entryElementsLocation() {
+    entries.length = 0
     function shouldBeWithin(what, cNum) {
       let col = document.querySelectorAll(".column")[cNum]
       ensure(Array.from(col.children).includes(what), "The entry " + what + " wasn't found within " + col)
@@ -316,21 +317,45 @@ function runTests() {
     shouldBeWithin(createElementForEntry("this should be within self", "du"), 2)
     shouldBeWithin(createElementForEntry("this should be within self, too", "ud"), 2)
     shouldBeWithin(createElementForEntry("this should be within gc", "dd"), 4)
-
+    entries.length = 0
+  }
+  function test_extraneousRelationsRenderToo() {
+    clearColumns()
+    give("A").aChild("B")
+    give("B").aChild("C")
+    give("B").aChild("D")
+    give("B").aParent("E")
+    give("A").aParent("F")
+    give("F").aChild("G")
+    give("F").aParent("K")
+    give("E").aParent("H")
+    give("E").aChild("L")
+    give("H").aParent("I")
+    give("D").aParent("J")
+    give("G").aChild("M")
+    give("G").aParent("N")
+    let rels = getRelations("A", entries.map(e => e.title))
+    renderEntries("A", rels)
   }
   // run all tests
-  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElements].forEach(test => test())
-  entries.length = 0 // ensure the entries are reset before ending tests.
+  [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElementsLocation, test_extraneousRelationsRenderToo].forEach(test => test())
+  // entries.length = 0 // ensure the entries are reset before ending tests.
 }
-
+function renderEntries(/** @type {string} */ focusedTitle, /** @type {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}} */ relations) {
+  let focused = entry(focusedTitle)
+  createElementForEntry(focusedTitle, "self")
+  let rels = Object.entries(relations).forEach(relationArray => {
+    relationArray[1].forEach(kind => createElementForEntry(kind, relationArray[0], kind + " - " + relationArray[0]))
+  })
+}
 setColorTheme(blueDarkTheme)
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
-entries = loadEntries()
-function createElementForEntry(title, relationToFocused) {
+entries = [...entries, ...getFromLocalStorage()]
+function createElementForEntry(/** @type {string} */ actualTitle, /** @type {string} */ relationToFocused, /** @type {string} */ altTitle) {
   let col
-  if (["uu"].includes(relationToFocused)) {
+  if (relationToFocused === "uu") {
     col = 0
   } else if (["u", "duu", "uud", "udu"].includes(relationToFocused)) { // dd, uu
     col = 1
@@ -338,22 +363,38 @@ function createElementForEntry(title, relationToFocused) {
     col = 2
   } else if (["d", "udd", "ddu", "dud"].includes(relationToFocused)) {
     col = 3
-  } else if (["dd"].includes(relationToFocused)) {
+  } else if (relationToFocused === "dd") {
     col = 4
+  } else if (relationToFocused === "self") {
+    col = 2
   }
   if (col !== undefined && col !== null) {
-    console.log(col)
     let entryElement = document.createElement("div")
+    if (relationToFocused === "self")
+      entryElement.classList.add("focused")
     entryElement.classList.add("entry")
-    entryElement.innerText = title
+    entryElement.innerText = altTitle ?? actualTitle
+    entryElement.onclick = () => {
+      clearColumns()
+      // let rels = getRelations("A", entries.map(e => e.title))
+      // renderEntries("A", rels)
+      renderEntries(actualTitle, getRelations(actualTitle, entries.map(e => e.title)))
+      // console.log(entries)
+    }
     let columnElement = document.querySelectorAll(".column")[col]
     columnElement.appendChild(entryElement)
     return entryElement
   }
   return undefined
 }
+function clearColumn(/** @type {number} */ num) {
+  document.querySelectorAll(".column")[num].replaceChildren()
+}
+function clearColumns() {
+  [0, 1, 2, 3, 4].forEach(num => clearColumn(num))
+}
 let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
 canvas.height = innerHeight;
 canvas.width = innerWidth
-context.fillRect(100, 100, 500, 10)
+// context.fillRect(100, 100, 500, 10)
