@@ -104,6 +104,7 @@ function deepishArraysAreEqual(A, B, showComments = false) {
   })
   return isEqual
 }
+let leftToRights = []
 /**
  * Finds the relations from a given entry to all other entries given.
  * @param {string} entryTitle 
@@ -118,19 +119,35 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   let parentTs = entry(entryTitle).parentTitles
   let childEs = entry(entryTitle).childrenTitles.map(childT => entry(childT))
   let childTs = entry(entryTitle).childrenTitles
-  let grandchildEs = childEs.flatMap(childE => childE.childrenTitles.map(gcT => entry(gcT))) // entry(childE.title))
-  let grandparentEs = parentEs.flatMap(parentE => parentE.parentTitles.map(gpT => entry(gpT)))
+  let grandchildEs = childEs.flatMap(childE => {
+    // add grandchildren to the canvas for linkage as children of focused entry's children
+    childE.childrenTitles.forEach(gcT => leftToRights.push([childE.title, gcT]));
+    // give the Es back
+    return childE.childrenTitles.map(gcT => entry(gcT))
+  }
+  )
+  let grandparentEs = parentEs.flatMap(parentE => {
+    // add grandparents to the canvas for linkage as parents of focused entry's parents
+    parentE.parentTitles.forEach(gpT => leftToRights.push([gpT, parentE.title]))
+    // give the Es back
+    return parentE.parentTitles.map(gpT => entry(gpT))
+  })
   let grandchildTs = grandchildEs.map(entry => entry.title)
   let grandparentTs = grandparentEs.map(entry => entry.title)
 
   function calculateBasic1GenAway() {
     // children and parents - one generation away. There are others one gen away, but these are the simplest.
     let d = entry(entryTitle).childrenTitles // children
+    // add children to the canvas for linkage as children of the focused entry
+    d.forEach(childTitle => leftToRights.push([entryTitle, childTitle]))
     let u = entry(entryTitle).parentTitles // parents
+    // add parents to the canvas for linkage as parents of the focused entry
+    u.forEach(parentTitle => leftToRights.push([parentTitle, entryTitle]))
     return [d, u]
   }
   function calculate2GensAway() {
     // 2 ds or 2 us (all two generations away from current)
+    // grandchildren and grandparents were already added to the canvas in the base of the method
     let dd = grandchildEs.map(e => e.title) // grandchildren
     let uu = grandparentEs.map(e => e.title) // grandparents
     return [dd, uu]
@@ -139,10 +156,18 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   function calculateSameGen() {
     // 1 u, 1 d (within the same generation the current)
     let du = childEs
-      .flatMap(cE => cE.parentTitles)
+      .flatMap(cE => {
+        // add spouses to the canvas for linkage as parents of focused entry's children
+        cE.parentTitles.forEach(pT => leftToRights.push([pT, cE.title]))
+        return cE.parentTitles
+      })
       .filter(pT => pT !== entryTitle) // spouses
     let ud = parentEs
-      .flatMap(pE => pE.childrenTitles)
+      .flatMap(pE => {
+        // add siblings to the canvas for linkage as descendents of parents
+        pE.childrenTitles.forEach(sibT => leftToRights.push([pE.title, sibT]))
+        return pE.childrenTitles;
+      })
       .filter((cT) => cT !== entryTitle) // siblings
     return [du, ud]
   }
@@ -152,19 +177,31 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
     let ddu = []
     // children in law
     ddu = grandchildEs
-      .flatMap(gcE => gcE.parentTitles)
+      .flatMap(gcE => {
+        // add children-in-law to the canvas for linkage as parents of focused entry's grandchildren
+        gcE.parentTitles.forEach(cilT => leftToRights.push([cilT, gcE.title]));
+        return gcE.parentTitles
+      })
       .filter(childinlawT => !childTs.includes(childinlawT))
     let dud = childEs // stepchildren
-      .flatMap(cE => cE.parentTitles)
+      .flatMap(cE => cE.parentTitles) // step-parents' canvas links are calculated in the step-parent section
       .filter(pT => pT !== entryTitle) // ensure we ignore the current entry
       .flatMap(spT => entry(spT))
-      .flatMap(spE => spE.childrenTitles)
+      .flatMap(spE => {
+        // add stepchildren to the canvas for linkage as children of focused entry's spouses 
+        spE.childrenTitles.forEach(stepcT => leftToRights.push([spE.title, stepcT]));
+        return spE.childrenTitles
+      })
       .filter(stepcT => !childTs.includes(stepcT))
     let udd = parentEs // niblings
       .flatMap(pE => pE.childrenTitles)
       .filter(cT => cT !== entryTitle) // ensure we ignore the current entry
       .flatMap(sibT => entry(sibT))
-      .flatMap(sibE => sibE.childrenTitles)
+      .flatMap(sibE => {
+        // add niblings to the canvas for linkage as children of focused entry's siblings 
+        sibE.childrenTitles.forEach(nibT => leftToRights.push([sibE.title, nibT]));
+        return sibE.childrenTitles
+      })
       .filter(nibT => !childTs.includes(nibT))
     // is it possible for niblings and stepchildren to be the same? Hmmm...
     return [ddu, dud, udd]
@@ -172,19 +209,31 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
 
   function calculateParentGen() {
     // 1 d, 2 us (essentially all parents in some way or another)
-    let duu = // parents-in-laws
+    let duu = // parent-in-laws
       childEs.flatMap((cE) => cE.parentTitles)
         .flatMap(spT => entry(spT))
-        .flatMap(spE => spE.parentTitles)
+        .flatMap(spE => {
+          // add parent-in-laws to the canvas for linkage as parents of focused entry's spouses 
+          spE.parentTitles.forEach(pilT => leftToRights.push([pilT, spE.title]));
+          return spE.parentTitles
+        })
         .filter(pilT => !parentTs.includes(pilT))
     let uud = parentEs  // auncles
       .flatMap(pE => pE.parentTitles)
-      .flatMap(pT => entry(pT).childrenTitles)
+      .flatMap(gpT => {
+        // add auncles to the canvas for linkage as children of focused entry's grandparents 
+        entry(gpT).childrenTitles.forEach(auncleT => leftToRights.push([entry(gpT).title, auncleT]));
+        return entry(gpT).childrenTitles
+      })
       .filter(aunc => !parentTs.includes(aunc))
     let udu = parentEs // stepparents
       .flatMap(pE => pE.childrenTitles)
       .flatMap(sibT => entry(sibT))
-      .flatMap(sibE => sibE.parentTitles)
+      .flatMap(sibE => {
+        // add stepparents to the canvas for linkage as parents of focused entry's siblings
+        sibE.parentTitles.forEach(steppT => leftToRights.push([steppT, sibE.title]));
+        return sibE.parentTitles
+      })
       .filter(pT => !parentTs.includes(pT))
     return [duu, uud, udu]
   }
@@ -320,6 +369,7 @@ function runTests() {
     entries.length = 0
   }
   function test_extraneousRelationsRenderToo() {
+
     clearColumns()
     give("A").aChild("B")
     give("B").aChild("C")
@@ -334,7 +384,7 @@ function runTests() {
     give("D").aParent("J")
     give("G").aChild("M")
     give("G").aParent("N")
-    renderEntries("K")
+    renderEntries("A")
   }
   // run all tests
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElementsLocation, test_extraneousRelationsRenderToo].forEach(test => test())
@@ -348,11 +398,24 @@ function renderEntries(/** @type {string} */ focusedTitle) {
   let rels = Object.entries(relations).forEach(relationArray => {
     relationArray[1].forEach(kind => {
       createElementForEntry(kind, relationArray[0])
-      let color = ["green", "red", "blue", "orange", "black", "white"]
-      context.strokeStyle = color[Math.floor(Math.random() * color.length)]
-      drawLink(focusedTitle, kind)
     })
   })
+
+  leftToRights.forEach(leftRight => {
+    let isDupe = false
+    let leftRightsThatMatchThisOne = leftToRights.filter((LR) => LR[0] === leftRight[0] && LR[1] === leftRight[1])
+    if (leftRightsThatMatchThisOne.length > 1)
+      leftRightsThatMatchThisOne.forEach((LR, i) => {
+        if (i >= 1) {
+          let index = leftToRights.indexOf(LR)
+          leftToRights.splice(index, 1)
+        }
+      })
+  })
+  leftToRights.forEach(leftRight => {
+    drawLink(leftRight[0], leftRight[1])
+  }
+  )
 }
 function createElementForEntry(/** @type {string} */ actualTitle, /** @type {string} */ relationToFocused, /** @type {string} */ altTitle) {
   let col
@@ -377,7 +440,7 @@ function createElementForEntry(/** @type {string} */ actualTitle, /** @type {str
     entryElement.innerText = altTitle ?? actualTitle
     entryElement.onclick = () => {
       clearColumns()
-      renderEntries(actualTitle) //, getRelations(actualTitle, entries.map(e => e.title)))
+      renderEntries(actualTitle)
     }
     let columnElement = document.querySelectorAll(".column")[col]
     columnElement.appendChild(entryElement)
@@ -389,10 +452,10 @@ function clearColumn(/** @type {number} */ num) {
   document.querySelectorAll(".column")[num].replaceChildren()
 }
 function clearColumns() {
+  leftToRights = []
   context.clearRect(0, 0, canvas.width, canvas.height);
   [0, 1, 2, 3, 4].forEach(num => clearColumn(num))
 }
-// context.fillRect(100, 100, 500, 10)
 function drawLink(leftEntryTitle, rightEntryTitle) {
   let LEnt = entry(leftEntryTitle)
   let REnt = entry(rightEntryTitle)
@@ -402,40 +465,29 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
   let LElem = getEntryElement(leftEntryTitle)
   if (RElem && LElem) {
     /**
-     * Draws a horizontal line.
-     * @param {number} x 
-     * @param {number} x2 
-     * @param {number} y 
-     */
-    function drawHorizontalLine(x, x2, y) {
-      context.beginPath()
-      context.moveTo(x, y)
-      context.lineTo(x2, y)
-      context.stroke()
-    }
-    /**
-     * Draws a vertical line.
-     * @param {number} x 
-     * @param {number} y2 
-     * @param {number} y 
-     */
-    function drawVerticalLine(y, y2, x) {
-      context.beginPath()
-      context.moveTo(x, y)
-      context.lineTo(x, y2)
-      context.stroke()
-    }
-    /**
-     * Averages the two numbers.
+     * Returns the average of two numbers.
      * @param {number} a 
      * @param {number} b 
+     * @returns 
      */
     function avg(a, b) { return (a + b) / 2 }
     let LECoords = findNumpadCoords(LElem)
     let RECoords = findNumpadCoords(RElem)
-    drawHorizontalLine(LECoords.six.x, avg(RECoords.four.x, LECoords.six.x), LECoords.six.y)
-    drawVerticalLine(LECoords.five.y, RECoords.five.y, avg(RECoords.four.x, LECoords.six.x))
-    drawHorizontalLine(RECoords.four.x, avg(RECoords.four.x, LECoords.six.x), RECoords.six.y)
+    context.lineWidth = 5
+    if (LElem.classList.contains("focused") || RElem.classList.contains("focused")) {
+      context.strokeStyle = "gold"
+    } else {
+      context.strokeStyle = "rgba(0,0,0,0.3)"
+    }
+    // else {
+    //   if (document.querySelectorAll(":hover.entry"))
+    //   if (LElem === Object.entries(document.querySelectorAll(":hover.entry"))[0][1])
+    //     context.strokeStyle = "rgba(0,0,0,0.3)"
+    // }
+    context.beginPath()
+    context.moveTo(LECoords.six.x, LECoords.six.y)
+    context.lineTo(RECoords.four.x, RECoords.four.y)
+    context.stroke()
   } else {
     console.log("One of these entries doesn't exist: ", leftEntryTitle, rightEntryTitle)
   }
@@ -473,10 +525,9 @@ let canvas = document.querySelector("canvas") ?? document.createElement("canvas"
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
 canvas.height = innerHeight;
 canvas.width = innerWidth
-context.lineWidth = 2
-context.strokeStyle = "gold"
 setColorTheme(blueDarkTheme)
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = []
 runTests()
 entries = [...entries, ...getFromLocalStorage()]
+console.log(leftToRights)
