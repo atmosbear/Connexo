@@ -345,7 +345,7 @@ function renderEntries(/** @type {string} */ focusedTitle, /** @type {{d: string
   let focused = entry(focusedTitle)
   createElementForEntry(focusedTitle, "self")
   let rels = Object.entries(relations).forEach(relationArray => {
-    relationArray[1].forEach(kind => createElementForEntry(kind, relationArray[0], kind + " - " + relationArray[0]))
+    relationArray[1].forEach(kind => createElementForEntry(kind, relationArray[0])) //, kind + " - " + relationArray[0]))
   })
 }
 setColorTheme(blueDarkTheme)
@@ -395,3 +395,79 @@ let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this 
 canvas.height = innerHeight;
 canvas.width = innerWidth
 // context.fillRect(100, 100, 500, 10)
+function drawLink(leftEntryTitle, rightEntryTitle) {
+  let LEnt = entry(leftEntryTitle)
+  let REnt = entry(rightEntryTitle)
+  /** @type {HTMLElement} */ //@ts-expect-error - it's not right about this
+  let RElem = getEntryElement(rightEntryTitle)
+  /** @type {HTMLElement} */ //@ts-expect-error - it's not right about this
+  let LElem = getEntryElement(leftEntryTitle)
+  if (RElem && LElem) {
+    /**
+     * Draws a horizontal line.
+     * @param {number} x 
+     * @param {number} x2 
+     * @param {number} y 
+     */
+    function drawHorizontalLine(x, x2, y) {
+      context.moveTo(x, y)
+      context.lineTo(x2, y)
+      context.stroke()
+    }
+    /**
+     * Draws a vertical line.
+     * @param {number} x 
+     * @param {number} y2 
+     * @param {number} y 
+     */
+    function drawVerticalLine(y, y2, x) {
+      context.moveTo(x, y)
+      context.lineTo(x, y2)
+      context.stroke()
+    }
+    /**
+     * Averages the two numbers.
+     * @param {number} a 
+     * @param {number} b 
+     */
+    function avg(a, b) { return (a + b) / 2 }
+    let LECoords = findNumpadCoords(LElem)
+    let RECoords = findNumpadCoords(RElem)
+    drawHorizontalLine(LECoords.six.x, avg(RECoords.four.x, LECoords.six.x), LECoords.six.y)
+    drawVerticalLine(LECoords.five.y, RECoords.five.y, avg(RECoords.four.x, LECoords.six.x))
+    drawHorizontalLine(RECoords.four.x, avg(RECoords.four.x, LECoords.six.x), RECoords.six.y)
+  } else {
+    console.log("One of these entries doesn't exist: ", leftEntryTitle, rightEntryTitle)
+  }
+}
+function getEntryElement(title) {
+  let entryEls = Object.entries(document.querySelectorAll(".column")).map(colEl => Object.entries(colEl[1].children).map(c => c[1]))
+  return entryEls.flat().find(e => e.innerHTML === title)
+}
+/**
+ *
+ * @param {HTMLElement} element
+ * @returns
+ */
+function findNumpadCoords(element) {
+  // For example, 7 is top left, 8 is the top middle, 9 is top right, 4 is middle left, 5 is center, etc.
+  let one, two, three, four, five, six, seven, eight, nine;
+  one = {
+    x: element.offsetLeft,
+    y: element.offsetTop + element.clientHeight,
+  };
+  two = {
+    x: one.x + element.clientWidth / 2,
+    y: one.y,
+  };
+  three = { x: one.x + element.offsetWidth, y: one.y };
+  four = { x: one.x, y: element.offsetHeight / 2 + element.offsetTop };
+  five = { x: two.x, y: four.y };
+  six = { x: three.x, y: four.y };
+  seven = { x: one.x, y: element.offsetTop };
+  eight = { x: two.x, y: seven.y };
+  nine = { x: three.x, y: seven.y };
+  return { one, two, three, four, five, six, seven, eight, nine };
+}
+context.lineWidth = 2
+context.strokeStyle = "gold"
