@@ -1,5 +1,5 @@
 // @ts-check
-import { setColorTheme, blueDarkTheme, } from "./theming"
+import { setColorTheme, blueDarkTheme, purpleTheme, } from "./theming"
 
 /**
  * A user-generated piece of textual information.
@@ -306,7 +306,17 @@ function runTests() {
     ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!")
   }
   function test_entryElements() {
-    createElementForEntry("cat", "u")
+    function shouldBeWithin(what, cNum) {
+      let col = document.querySelectorAll(".column")[cNum]
+      ensure(Array.from(col.children).includes(what), "The entry " + what + " wasn't found within " + col)
+    }
+    shouldBeWithin(createElementForEntry("this should be within gp", "uu"), 0)
+    shouldBeWithin(createElementForEntry("this should be within parents", "u"), 1)
+    shouldBeWithin(createElementForEntry("this should be within children", "d"), 3)
+    shouldBeWithin(createElementForEntry("this should be within self", "du"), 2)
+    shouldBeWithin(createElementForEntry("this should be within self, too", "ud"), 2)
+    shouldBeWithin(createElementForEntry("this should be within gc", "dd"), 4)
+
   }
   // run all tests
   [test_entry, test_parentAndChildGiving, test_noParentAndChildDupes, test_saving_and_loading, test_arrayEqualsMethod, test_getRelations, test_entryElements].forEach(test => test())
@@ -319,20 +329,28 @@ let entries = []
 runTests()
 entries = loadEntries()
 function createElementForEntry(title, relationToFocused) {
-  console.log(relationToFocused)
   let col
-  if (["u", "duu", "uud", "udu"].includes(relationToFocused)) {
+  if (["uu"].includes(relationToFocused)) {
+    col = 0
+  } else if (["u", "duu", "uud", "udu"].includes(relationToFocused)) { // dd, uu
     col = 1
-  } else if (["d", "udd", "ddu", "dud"].includes(relationToFocused)) {
+  } else if (["du", "ud"].includes(relationToFocused)) {
     col = 2
+  } else if (["d", "udd", "ddu", "dud"].includes(relationToFocused)) {
+    col = 3
+  } else if (["dd"].includes(relationToFocused)) {
+    col = 4
   }
-  if (col) {
+  if (col !== undefined && col !== null) {
+    console.log(col)
     let entryElement = document.createElement("div")
     entryElement.classList.add("entry")
     entryElement.innerText = title
     let columnElement = document.querySelectorAll(".column")[col]
     columnElement.appendChild(entryElement)
+    return entryElement
   }
+  return undefined
 }
 let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
