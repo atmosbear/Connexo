@@ -334,3 +334,8 @@ function createElementForEntry(title, relationToFocused) {
     columnElement.appendChild(entryElement)
   }
 }
+let canvas = document.querySelector("canvas") ?? document.createElement("canvas") // this ternary is preventing TS errors about it possibly being null, which is untrue.
+let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D() // this ternary is preventing TS errors about it possibly being null, which is untrue.
+canvas.height = innerHeight;
+canvas.width = innerWidth
+context.fillRect(100, 100, 500, 10)
