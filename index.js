@@ -34,9 +34,24 @@ function save(entries) {
 function getFromLocalStorage() {
   let newEntries;
   const data = localStorage.getItem("entries");
-  if (data) newEntries = JSON.parse(data);
-  else newEntries = [];
+  try {
+    if (data) newEntries = JSON.parse(data);
+    else newEntries = [];
+  } catch {
+    localStorage.removeItem("entries");
+    console.log("Sorry! The database is corrupted...");
+  }
   return newEntries;
+}
+/**
+ * Checks to see if something is within the array, and removes it if it is.
+ * @param {any} thingToRemove
+ * @param {any[]} arrayToRemoveFrom
+ */
+function removeFromArrayIfPresent(thingToRemove, arrayToRemoveFrom) {
+  if (arrayToRemoveFrom.includes(thingToRemove)) {
+    arrayToRemoveFrom.splice(arrayToRemoveFrom.indexOf(thingToRemove), 1);
+  }
 }
 /**
  * A helper function that returns options for adding relations to entries.
@@ -52,16 +67,6 @@ function give(entryTitle) {
   function addUnlessAlreadyPresent(thingToAdd, arrayToAddTo) {
     if (!arrayToAddTo.includes(thingToAdd)) {
       arrayToAddTo.push(thingToAdd);
-    }
-  }
-  /**
-   * Checks to see if something is within the array, and removes it if it is.
-   * @param {any} thingToRemove
-   * @param {any[]} arrayToRemoveFrom
-   */
-  function removeFromArrayIfPresent(thingToRemove, arrayToRemoveFrom) {
-    if (arrayToRemoveFrom.includes(thingToRemove)) {
-      arrayToRemoveFrom.splice(arrayToRemoveFrom.indexOf(thingToRemove), 1);
     }
   }
   return {
@@ -296,6 +301,7 @@ function runTests() {
     give("B").aChild("C");
     give("A").aChild("D");
     give("C").aParent("E");
+    localStorage.clear();
     const dataBeforeSavingAndLoading = entries;
     const dataAfterSavingAndLoading = getFromLocalStorage();
     ensure(dataAfterSavingAndLoading !== undefined && dataAfterSavingAndLoading !== null, "The data doesn't exist!");
@@ -467,9 +473,12 @@ function createElementForEntry(
     if (relationToFocused === "self") entryElement.classList.add("focused");
     entryElement.classList.add("entry");
     entryElement.innerText = altTitle ?? actualTitle;
-    entryElement.onclick = () => {
-      clearColumns();
-      renderEntries(actualTitle);
+    entryElement.onclick = (e) => {
+      if (e.altKey) {
+        deleteEntry(actualTitle);
+      } else {
+        renderAndClear(actualTitle);
+      }
     };
     let columnElement = document.querySelectorAll(".column")[col];
     columnElement.appendChild(entryElement);
@@ -504,7 +513,6 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
     }
     let LECoords = findNumpadCoords(LElem);
     let RECoords = findNumpadCoords(RElem);
-    context.lineWidth = 5;
     if (LElem.classList.contains("focused") || RElem.classList.contains("focused")) {
       context.strokeStyle = "gold";
     } else {
@@ -543,21 +551,6 @@ function findNumpadCoords(element) {
   nine = { x: three.x, y: seven.y };
   return { one, two, three, four, five, six, seven, eight, nine };
 }
-let canvas = document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
-let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D(); // this ternary is preventing TS errors about it possibly being null, which is untrue.
-canvas.height = innerHeight;
-canvas.width = innerWidth;
-setColorTheme(blueDarkTheme);
-/** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
-let entries = [];
-let focused;
-runTests();
-entries = [...entries, ...getFromLocalStorage()];
-console.log(leftToRights);
-Object.entries(document.querySelectorAll(".column"))
-  .map((el) => el[1])
-  .forEach((el) => el.addEventListener("click", (e) => a(e)));
-
 function a(e) {
   if (e.target.id !== "inputter") renderAndClear(focused.title);
   let inputter = document.getElementById("inputter");
@@ -573,9 +566,13 @@ function a(e) {
         if (col === "d") {
           // @ts-expect-error
           give(focused.title).aChild(inputter.value);
+          save(entries);
+          entries = [...entries, ...getFromLocalStorage()];
         } else if (col === "u") {
           // @ts-expect-error
           give(focused.title).aParent(inputter.value);
+          save(entries);
+          entries = [...entries, ...getFromLocalStorage()];
         }
         a(e);
       }
@@ -584,3 +581,32 @@ function a(e) {
   inputter?.focus();
   drawLinks();
 }
+function deleteEntry(entryTitle) {
+  if (entryTitle !== focused.title) {
+    const entryToDelete = entries.find((entry) => entryTitle === entry.title);
+    removeFromArrayIfPresent(entryToDelete, entries);
+    entries.forEach((entry) => {
+      removeFromArrayIfPresent(entryToDelete?.title, entry.parentTitles);
+      removeFromArrayIfPresent(entryToDelete?.title, entry.childrenTitles);
+    });
+    save(entries);
+    renderAndClear(focused.title);
+  }
+}
+function prepareScreen() {
+  canvas.height = innerHeight;
+  canvas.width = innerWidth;
+  setColorTheme(blueDarkTheme);
+  context.lineWidth = 3;
+  Object.entries(document.querySelectorAll(".column"))
+    .map((el) => el[1])
+    .forEach((el) => el.addEventListener("click", (e) => a(e)));
+}
+let canvas = document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
+let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D(); // this ternary is preventing TS errors about it possibly being null, which is untrue.
+prepareScreen();
+/** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
+let entries = [];
+let focused;
+runTests();
+entries = [...entries, ...getFromLocalStorage()];
