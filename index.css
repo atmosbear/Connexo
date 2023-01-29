@@ -14,8 +14,7 @@
 }
 
 * {
-  font-family: Inter, "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-    "Lucida Sans", Arial, sans-serif;
+  font-family: Inter, "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif;
   font-weight: 200;
   box-sizing: content-box;
   color: var(--header-text);
@@ -50,17 +49,12 @@ body {
   height: 2rem;
   font-size: 1.2rem;
   padding-top: 0.3rem;
-
   margin-bottom: 2px;
   padding-left: 5px;
 }
 
 .entry:hover {
-  background: linear-gradient(
-    180deg,
-    var(--hover-entry-p),
-    var(--hover-entry-s)
-  );
+  background: linear-gradient(180deg, var(--hover-entry-p), var(--hover-entry-s));
 }
 
 .entry {
@@ -76,11 +70,7 @@ body {
 }
 
 .focused {
-  background: linear-gradient(
-    0deg,
-    var(--focused-entry-p),
-    var(--focused-entry-s)
-  );
+  background: linear-gradient(0deg, var(--focused-entry-p), var(--focused-entry-s));
   /* border: 1px solid #ffa; */
   color: var(--focused-entry-text);
 }
