@@ -410,20 +410,8 @@ function renderAndClear(focusedTitle) {
   clearColumns();
   renderEntries(focusedTitle);
 }
-function renderEntries(/** @type {string} */ focusedTitle) {
-  /** @type {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}} */
-  let relations = getRelations(
-    focusedTitle,
-    entries.map((e) => e.title)
-  );
-  focused = entry(focusedTitle);
-  createElementForEntry(focusedTitle, "self");
-  let rels = Object.entries(relations).forEach((relationArray) => {
-    relationArray[1].forEach((kind) => {
-      createElementForEntry(kind, relationArray[0]);
-    });
-  });
-
+function drawLinks() {
+  context.clearRect(0, 0, innerWidth, innerHeight);
   leftToRights.forEach((leftRight) => {
     let isDupe = false;
     let leftRightsThatMatchThisOne = leftToRights.filter((LR) => LR[0] === leftRight[0] && LR[1] === leftRight[1]);
@@ -438,6 +426,21 @@ function renderEntries(/** @type {string} */ focusedTitle) {
   leftToRights.forEach((leftRight) => {
     drawLink(leftRight[0], leftRight[1]);
   });
+}
+function renderEntries(/** @type {string} */ focusedTitle) {
+  /** @type {{d: string[], u: string[], dd: string[], uu: string[], du: string[], ud: string[], ddu: string[], dud: string[], udd: string[], duu: string[], uud: string[], udu: string[]}} */
+  let relations = getRelations(
+    focusedTitle,
+    entries.map((e) => e.title)
+  );
+  focused = entry(focusedTitle);
+  createElementForEntry(focusedTitle, "self");
+  let rels = Object.entries(relations).forEach((relationArray) => {
+    relationArray[1].forEach((kind) => {
+      createElementForEntry(kind, relationArray[0]);
+    });
+  });
+  drawLinks();
 }
 function createElementForEntry(
   /** @type {string} */ actualTitle,
@@ -529,14 +532,8 @@ function getEntryElement(title) {
 function findNumpadCoords(element) {
   // For example, 7 is top left, 8 is the top middle, 9 is top right, 4 is middle left, 5 is center, etc.
   let one, two, three, four, five, six, seven, eight, nine;
-  one = {
-    x: element.offsetLeft,
-    y: element.offsetTop + element.clientHeight,
-  };
-  two = {
-    x: one.x + element.clientWidth / 2,
-    y: one.y,
-  };
+  one = { x: element.offsetLeft, y: element.offsetTop + element.clientHeight };
+  two = { x: one.x + element.clientWidth / 2, y: one.y };
   three = { x: one.x + element.offsetWidth, y: one.y };
   four = { x: one.x, y: element.offsetHeight / 2 + element.offsetTop };
   five = { x: two.x, y: four.y };
@@ -559,18 +556,31 @@ entries = [...entries, ...getFromLocalStorage()];
 console.log(leftToRights);
 Object.entries(document.querySelectorAll(".column"))
   .map((el) => el[1])
-  .forEach((el) =>
-    el.addEventListener("mousedown", (e) => {
-      if (el.id === "d") {
-        let inputter = document.getElementById("inputter") ?? document.createElement("div");
-        inputter.id = "inputter";
-        inputter.onmousedown = () => {
-          give(focused.title).aChild("cat");
-        };
-        renderAndClear(focused.title);
-      } else if (el.id === "u") {
-        give(focused.title).aParent("cat");
-        renderAndClear(focused.title);
+  .forEach((el) => el.addEventListener("click", (e) => a(e)));
+
+function a(e) {
+  if (e.target.id !== "inputter") renderAndClear(focused.title);
+  let inputter = document.getElementById("inputter");
+  if (!inputter) {
+    inputter = document.createElement("input");
+    inputter.id = "inputter";
+  }
+  if (["d", "u"].includes(e.target.id)) e.target.appendChild(inputter);
+  let col = e.target.id;
+  if (!inputter.onkeydown) {
+    inputter.onkeydown = (e2) => {
+      if (e2.key === "Enter") {
+        if (col === "d") {
+          // @ts-expect-error
+          give(focused.title).aChild(inputter.value);
+        } else if (col === "u") {
+          // @ts-expect-error
+          give(focused.title).aParent(inputter.value);
+        }
+        a(e);
       }
-    })
-  );
+    };
+  }
+  inputter?.focus();
+  drawLinks();
+}

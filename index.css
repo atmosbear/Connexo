@@ -57,7 +57,8 @@ body {
   background: linear-gradient(180deg, var(--hover-entry-p), var(--hover-entry-s));
 }
 
-.entry {
+.entry,
+input {
   background: linear-gradient(180deg, var(--entry-p), var(--entry-s));
   color: var(--entry-text);
   text-shadow: black 1px 1px 2px;
@@ -67,6 +68,12 @@ body {
   margin-bottom: 10px;
   cursor: pointer;
   font-weight: 400;
+}
+
+input {
+  background-color: var(--entry-p);
+  text-align: center;
+  color: white;
 }
 
 .focused {
