@@ -114,25 +114,19 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
   // d is down, u is up.
   // for example dd is 'down down', or 'a child of a child' (a grandchild).
 
-  let parentEs = entry(entryTitle).parentTitles.map((parentT) =>
-    entry(parentT)
-  );
+  let parentEs = entry(entryTitle).parentTitles.map((parentT) => entry(parentT));
   let parentTs = entry(entryTitle).parentTitles;
   let childEs = entry(entryTitle).childrenTitles.map((childT) => entry(childT));
   let childTs = entry(entryTitle).childrenTitles;
   let grandchildEs = childEs.flatMap((childE) => {
     // add grandchildren to the canvas for linkage as children of focused entry's children
-    childE.childrenTitles.forEach((gcT) =>
-      leftToRights.push([childE.title, gcT])
-    );
+    childE.childrenTitles.forEach((gcT) => leftToRights.push([childE.title, gcT]));
     // give the Es back
     return childE.childrenTitles.map((gcT) => entry(gcT));
   });
   let grandparentEs = parentEs.flatMap((parentE) => {
     // add grandparents to the canvas for linkage as parents of focused entry's parents
-    parentE.parentTitles.forEach((gpT) =>
-      leftToRights.push([gpT, parentE.title])
-    );
+    parentE.parentTitles.forEach((gpT) => leftToRights.push([gpT, parentE.title]));
     // give the Es back
     return parentE.parentTitles.map((gpT) => entry(gpT));
   });
@@ -169,9 +163,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
     let ud = parentEs
       .flatMap((pE) => {
         // add siblings to the canvas for linkage as descendents of parents
-        pE.childrenTitles.forEach((sibT) =>
-          leftToRights.push([pE.title, sibT])
-        );
+        pE.childrenTitles.forEach((sibT) => leftToRights.push([pE.title, sibT]));
         return pE.childrenTitles;
       })
       .filter((cT) => cT !== entryTitle); // siblings
@@ -185,9 +177,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
     ddu = grandchildEs
       .flatMap((gcE) => {
         // add children-in-law to the canvas for linkage as parents of focused entry's grandchildren
-        gcE.parentTitles.forEach((cilT) =>
-          leftToRights.push([cilT, gcE.title])
-        );
+        gcE.parentTitles.forEach((cilT) => leftToRights.push([cilT, gcE.title]));
         return gcE.parentTitles;
       })
       .filter((childinlawT) => !childTs.includes(childinlawT));
@@ -197,9 +187,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
       .flatMap((spT) => entry(spT))
       .flatMap((spE) => {
         // add stepchildren to the canvas for linkage as children of focused entry's spouses
-        spE.childrenTitles.forEach((stepcT) =>
-          leftToRights.push([spE.title, stepcT])
-        );
+        spE.childrenTitles.forEach((stepcT) => leftToRights.push([spE.title, stepcT]));
         return spE.childrenTitles;
       })
       .filter((stepcT) => !childTs.includes(stepcT));
@@ -209,9 +197,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
       .flatMap((sibT) => entry(sibT))
       .flatMap((sibE) => {
         // add niblings to the canvas for linkage as children of focused entry's siblings
-        sibE.childrenTitles.forEach((nibT) =>
-          leftToRights.push([sibE.title, nibT])
-        );
+        sibE.childrenTitles.forEach((nibT) => leftToRights.push([sibE.title, nibT]));
         return sibE.childrenTitles;
       })
       .filter((nibT) => !childTs.includes(nibT));
@@ -227,9 +213,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
         .flatMap((spT) => entry(spT))
         .flatMap((spE) => {
           // add parent-in-laws to the canvas for linkage as parents of focused entry's spouses
-          spE.parentTitles.forEach((pilT) =>
-            leftToRights.push([pilT, spE.title])
-          );
+          spE.parentTitles.forEach((pilT) => leftToRights.push([pilT, spE.title]));
           return spE.parentTitles;
         })
         .filter((pilT) => !parentTs.includes(pilT));
@@ -237,9 +221,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
       .flatMap((pE) => pE.parentTitles)
       .flatMap((gpT) => {
         // add auncles to the canvas for linkage as children of focused entry's grandparents
-        entry(gpT).childrenTitles.forEach((auncleT) =>
-          leftToRights.push([entry(gpT).title, auncleT])
-        );
+        entry(gpT).childrenTitles.forEach((auncleT) => leftToRights.push([entry(gpT).title, auncleT]));
         return entry(gpT).childrenTitles;
       })
       .filter((aunc) => !parentTs.includes(aunc));
@@ -248,9 +230,7 @@ function getRelations(entryTitle, arrayOfTitlesToFindTheRelationTo) {
       .flatMap((sibT) => entry(sibT))
       .flatMap((sibE) => {
         // add stepparents to the canvas for linkage as parents of focused entry's siblings
-        sibE.parentTitles.forEach((steppT) =>
-          leftToRights.push([steppT, sibE.title])
-        );
+        sibE.parentTitles.forEach((steppT) => leftToRights.push([steppT, sibE.title]));
         return sibE.parentTitles;
       })
       .filter((pT) => !parentTs.includes(pT));
@@ -278,79 +258,37 @@ function runTests() {
     entries.length = 0;
     // ensure that the entry gets added to the global array
     const helloEntry = entry("hello");
-    ensure(
-      entries.includes(helloEntry) && entries.length === 1,
-      "The new entry didn't get added to the global array!"
-    );
+    ensure(entries.includes(helloEntry) && entries.length === 1, "The new entry didn't get added to the global array!");
     // entries should not be duplicated, instead return the same object
     const helloEntry2 = entry("hello");
     ensure(entries.length !== 2, "The entry was added twice!");
-    ensure(
-      entries.length === 1,
-      "The length should be 1, but it's " + entries.length
-    );
+    ensure(entries.length === 1, "The length should be 1, but it's " + entries.length);
   }
   function test_parentAndChildGiving() {
     // test parents
     entries.length = 0;
     give("hello").aParent("kittens");
-    ensure(
-      entry("kittens").childrenTitles.includes("hello"),
-      "entry 'kittens' does not have the child 'hello'."
-    );
-    ensure(
-      entry("hello").parentTitles.includes("kittens"),
-      "entry 'hello' does not have the parent 'kittens'."
-    );
+    ensure(entry("kittens").childrenTitles.includes("hello"), "entry 'kittens' does not have the child 'hello'.");
+    ensure(entry("hello").parentTitles.includes("kittens"), "entry 'hello' does not have the parent 'kittens'.");
     // test children
     entries.length = 0;
     give("hello").aChild("kittens");
-    ensure(
-      entry("hello").childrenTitles.includes("kittens"),
-      "The entry 'hello' does not have the child 'kittens'."
-    );
-    ensure(
-      entry("kittens").parentTitles.includes("hello"),
-      "The entry 'kittens' does not have the parents 'hello'."
-    );
+    ensure(entry("hello").childrenTitles.includes("kittens"), "The entry 'hello' does not have the child 'kittens'.");
+    ensure(entry("kittens").parentTitles.includes("hello"), "The entry 'kittens' does not have the parents 'hello'.");
   }
   function test_noParentAndChildDupes() {
     entries.length = 0;
     // parent and child relations to the same entry cannot exist; they are instead just the newest relation defined.
     give("A").aChild("B");
     give("B").aChild("A");
-    ensure(
-      !entry("A").childrenTitles.includes("B"),
-      "A should not have B as a title, but it does!"
-    );
-    ensure(
-      !entry("B").parentTitles.includes("A"),
-      "B should not have A as a parent, but it does!"
-    );
-    ensure(
-      entry("A").parentTitles.includes("B"),
-      "A should have B as a title, but it doesn't!"
-    );
-    ensure(
-      entry("B").childrenTitles.includes("A"),
-      "B should have A as a parent, but it doesn't!"
-    );
-    ensure(
-      entry("A").childrenTitles.length === 0,
-      "A shouldn't have children, but it does!"
-    );
-    ensure(
-      entry("A").parentTitles.length === 1,
-      "A doesn't have exactly 1 parent."
-    );
-    ensure(
-      entry("B").childrenTitles.length === 1,
-      "B should have one child, but it doesn't."
-    );
-    ensure(
-      entry("B").parentTitles.length === 0,
-      "B shouldn't have children, but it does!"
-    );
+    ensure(!entry("A").childrenTitles.includes("B"), "A should not have B as a title, but it does!");
+    ensure(!entry("B").parentTitles.includes("A"), "B should not have A as a parent, but it does!");
+    ensure(entry("A").parentTitles.includes("B"), "A should have B as a title, but it doesn't!");
+    ensure(entry("B").childrenTitles.includes("A"), "B should have A as a parent, but it doesn't!");
+    ensure(entry("A").childrenTitles.length === 0, "A shouldn't have children, but it does!");
+    ensure(entry("A").parentTitles.length === 1, "A doesn't have exactly 1 parent.");
+    ensure(entry("B").childrenTitles.length === 1, "B should have one child, but it doesn't.");
+    ensure(entry("B").parentTitles.length === 0, "B shouldn't have children, but it does!");
   }
   function test_saving_and_loading() {
     entries.length = 0;
@@ -360,35 +298,16 @@ function runTests() {
     give("C").aParent("E");
     const dataBeforeSavingAndLoading = entries;
     const dataAfterSavingAndLoading = getFromLocalStorage();
+    ensure(dataAfterSavingAndLoading !== undefined && dataAfterSavingAndLoading !== null, "The data doesn't exist!");
     ensure(
-      dataAfterSavingAndLoading !== undefined &&
-        dataAfterSavingAndLoading !== null,
-      "The data doesn't exist!"
-    );
-    ensure(
-      deepishArraysAreEqual(
-        dataBeforeSavingAndLoading,
-        dataAfterSavingAndLoading
-      ),
+      deepishArraysAreEqual(dataBeforeSavingAndLoading, dataAfterSavingAndLoading),
       "The entries being loaded after are NOT the same as the entries that were saved!"
     );
     entries.length = 0;
   }
   function test_arrayEqualsMethod() {
-    ensure(
-      !deepishArraysAreEqual(
-        [1, 2, 3, { title: "red" }],
-        [1, 2, 3, { title: "red", entries }]
-      ),
-      "Nope."
-    );
-    ensure(
-      deepishArraysAreEqual(
-        [1, 2, 3, { title: "red" }],
-        [1, 2, 3, { title: "red" }]
-      ),
-      "Nope."
-    );
+    ensure(!deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red", entries }]), "Nope.");
+    ensure(deepishArraysAreEqual([1, 2, 3, { title: "red" }], [1, 2, 3, { title: "red" }]), "Nope.");
   }
   function test_getRelations() {
     entries.length = 0;
@@ -420,88 +339,40 @@ function runTests() {
     // u - parent
     ensure(Arelations.u.includes("F"), "F isn't A's parent, but it should be!");
     // dd - grandchild
-    ensure(
-      Arelations.dd.includes("C"),
-      "C isn't A's grandchild, but it should be!"
-    );
-    ensure(
-      Arelations.dd.includes("D"),
-      "D isn't A's grandchild, but it should be!"
-    );
-    ensure(
-      Arelations.dd.length === 2,
-      "There aren't exactly 2 grandchildren, as there should be!"
-    );
+    ensure(Arelations.dd.includes("C"), "C isn't A's grandchild, but it should be!");
+    ensure(Arelations.dd.includes("D"), "D isn't A's grandchild, but it should be!");
+    ensure(Arelations.dd.length === 2, "There aren't exactly 2 grandchildren, as there should be!");
     // uu - grandparent
     ensure(Arelations.uu.includes("K"), "K was not a gp as it should be!");
     // du - spouse
     ensure(Arelations.du.includes("E"), "A should have E as a spouse!");
     // ud - sibling
-    ensure(
-      Arelations.ud.includes("G"),
-      "A doesn't have a sibling, but it should!"
-    );
+    ensure(Arelations.ud.includes("G"), "A doesn't have a sibling, but it should!");
     // ddu - child-in-law
-    ensure(
-      Arelations.ddu.includes("J"),
-      "J isn't in there, but it should be!!"
-    );
+    ensure(Arelations.ddu.includes("J"), "J isn't in there, but it should be!!");
     // dud - stepchild
-    ensure(
-      Arelations.dud.includes("L"),
-      "L is not a stepchild, but it should be!"
-    );
+    ensure(Arelations.dud.includes("L"), "L is not a stepchild, but it should be!");
     // udd - niblings
-    ensure(
-      Arelations.udd.includes("M"),
-      "M is not a nibling, but it should be!"
-    );
+    ensure(Arelations.udd.includes("M"), "M is not a nibling, but it should be!");
     // duu - parent in law
-    ensure(
-      Arelations.duu.includes("H"),
-      "It does not contain H as a parent in law!"
-    );
-    ensure(
-      !Arelations.duu.includes("F"),
-      "F is a parent, and should not be a parent in law!"
-    );
+    ensure(Arelations.duu.includes("H"), "It does not contain H as a parent in law!");
+    ensure(!Arelations.duu.includes("F"), "F is a parent, and should not be a parent in law!");
     // udu - stepparent
-    ensure(
-      Arelations.udu.includes("N"),
-      "N is not a stepparent, but it should be!"
-    );
+    ensure(Arelations.udu.includes("N"), "N is not a stepparent, but it should be!");
     // uud - auncle
-    ensure(
-      Crelations.uud.includes("L"),
-      "L should be a child of C, but it's not!"
-    );
+    ensure(Crelations.uud.includes("L"), "L should be a child of C, but it's not!");
   }
   function test_entryElementsLocation() {
     entries.length = 0;
     function shouldBeWithin(what, cNum) {
       let col = document.querySelectorAll(".column")[cNum];
-      ensure(
-        Array.from(col.children).includes(what),
-        "The entry " + what + " wasn't found within " + col
-      );
+      ensure(Array.from(col.children).includes(what), "The entry " + what + " wasn't found within " + col);
     }
     shouldBeWithin(createElementForEntry("this should be within gp", "uu"), 0);
-    shouldBeWithin(
-      createElementForEntry("this should be within parents", "u"),
-      1
-    );
-    shouldBeWithin(
-      createElementForEntry("this should be within children", "d"),
-      3
-    );
-    shouldBeWithin(
-      createElementForEntry("this should be within self", "du"),
-      2
-    );
-    shouldBeWithin(
-      createElementForEntry("this should be within self, too", "ud"),
-      2
-    );
+    shouldBeWithin(createElementForEntry("this should be within parents", "u"), 1);
+    shouldBeWithin(createElementForEntry("this should be within children", "d"), 3);
+    shouldBeWithin(createElementForEntry("this should be within self", "du"), 2);
+    shouldBeWithin(createElementForEntry("this should be within self, too", "ud"), 2);
     shouldBeWithin(createElementForEntry("this should be within gc", "dd"), 4);
     entries.length = 0;
   }
@@ -555,9 +426,7 @@ function renderEntries(/** @type {string} */ focusedTitle) {
 
   leftToRights.forEach((leftRight) => {
     let isDupe = false;
-    let leftRightsThatMatchThisOne = leftToRights.filter(
-      (LR) => LR[0] === leftRight[0] && LR[1] === leftRight[1]
-    );
+    let leftRightsThatMatchThisOne = leftToRights.filter((LR) => LR[0] === leftRight[0] && LR[1] === leftRight[1]);
     if (leftRightsThatMatchThisOne.length > 1)
       leftRightsThatMatchThisOne.forEach((LR, i) => {
         if (i >= 1) {
@@ -633,34 +502,22 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
     let LECoords = findNumpadCoords(LElem);
     let RECoords = findNumpadCoords(RElem);
     context.lineWidth = 5;
-    if (
-      LElem.classList.contains("focused") ||
-      RElem.classList.contains("focused")
-    ) {
+    if (LElem.classList.contains("focused") || RElem.classList.contains("focused")) {
       context.strokeStyle = "gold";
     } else {
       context.strokeStyle = "rgba(0,0,0,0.3)";
     }
-    // else {
-    //   if (document.querySelectorAll(":hover.entry"))
-    //   if (LElem === Object.entries(document.querySelectorAll(":hover.entry"))[0][1])
-    //     context.strokeStyle = "rgba(0,0,0,0.3)"
-    // }
     context.beginPath();
     context.moveTo(LECoords.six.x, LECoords.six.y);
     context.lineTo(RECoords.four.x, RECoords.four.y);
     context.stroke();
   } else {
-    console.log(
-      "One of these entries doesn't exist: ",
-      leftEntryTitle,
-      rightEntryTitle
-    );
+    console.log("One of these entries doesn't exist: ", leftEntryTitle, rightEntryTitle);
   }
 }
 function getEntryElement(title) {
-  let entryEls = Object.entries(document.querySelectorAll(".column")).map(
-    (colEl) => Object.entries(colEl[1].children).map((c) => c[1])
+  let entryEls = Object.entries(document.querySelectorAll(".column")).map((colEl) =>
+    Object.entries(colEl[1].children).map((c) => c[1])
   );
   return entryEls.flat().find((e) => e.innerHTML === title);
 }
@@ -689,8 +546,7 @@ function findNumpadCoords(element) {
   nine = { x: three.x, y: seven.y };
   return { one, two, three, four, five, six, seven, eight, nine };
 }
-let canvas =
-  document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
+let canvas = document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D(); // this ternary is preventing TS errors about it possibly being null, which is untrue.
 canvas.height = innerHeight;
 canvas.width = innerWidth;
@@ -706,7 +562,11 @@ Object.entries(document.querySelectorAll(".column"))
   .forEach((el) =>
     el.addEventListener("mousedown", (e) => {
       if (el.id === "d") {
-        give(focused.title).aChild("cat");
+        let inputter = document.getElementById("inputter") ?? document.createElement("div");
+        inputter.id = "inputter";
+        inputter.onmousedown = () => {
+          give(focused.title).aChild("cat");
+        };
         renderAndClear(focused.title);
       } else if (el.id === "u") {
         give(focused.title).aParent("cat");
