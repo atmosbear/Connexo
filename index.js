@@ -1,5 +1,5 @@
 // @ts-check
-import { setColorTheme, blueDarkTheme, purpleTheme, } from "./theming"
+import { setColorTheme, blueDarkTheme, purpleTheme, } from "./theming.js"
 
 /**
  * A user-generated piece of textual information.
