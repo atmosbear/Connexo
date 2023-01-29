@@ -301,7 +301,6 @@ function runTests() {
     give("B").aChild("C");
     give("A").aChild("D");
     give("C").aParent("E");
-    localStorage.clear();
     const dataBeforeSavingAndLoading = entries;
     const dataAfterSavingAndLoading = getFromLocalStorage();
     ensure(dataAfterSavingAndLoading !== undefined && dataAfterSavingAndLoading !== null, "The data doesn't exist!");
@@ -608,5 +607,15 @@ prepareScreen();
 /** @type {{ title: string; parentTitles: string[]; childrenTitles: string[]; }[]} */
 let entries = [];
 let focused;
-runTests();
+// runTests();
 entries = [...entries, ...getFromLocalStorage()];
+renderAndClear("F");
+localStorage.clear();
+let clearButton = document.getElementById("clear-button");
+if (clearButton) {
+  // it does exist, this if statement is just to get around TS's unhelpful check here
+  clearButton.onclick = (e) => {
+    localStorage.clear();
+  };
+  document.querySelectorAll(".header")[1].appendChild(clearButton);
+}

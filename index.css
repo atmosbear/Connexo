@@ -88,3 +88,9 @@ canvas {
   left: 0;
   top: 0;
 }
+
+button {
+  border-radius: 10px;
+  color: black;
+  margin: 0px 10px;
+}
