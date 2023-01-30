@@ -646,13 +646,16 @@ let entries = [];
 let focused;
 // runTests();
 entries = [...entries, ...getFromLocalStorage()];
-renderAndClear("F");
+renderAndClear("Core");
 localStorage.clear();
 let clearButton = document.getElementById("clear-button");
 if (clearButton) {
   // it does exist, this if statement is just to get around TS's unhelpful check here
   clearButton.onclick = (e) => {
     localStorage.clear();
+    document.location.reload();
   };
-  document.querySelectorAll(".header")[1].appendChild(clearButton);
 }
+window.addEventListener("resize", () => {
+  drawLinks();
+});
