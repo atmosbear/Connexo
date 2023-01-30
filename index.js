@@ -431,6 +431,12 @@ function runTests() {
 function renderAndClear(focusedTitle) {
   clearColumns();
   renderEntries(focusedTitle);
+
+  console.log(entries);
+  entries.forEach((entry, i) => {
+    console.log(i);
+    animateEntry(entry.title, 100 + i * 100);
+  });
 }
 function drawLinks() {
   context.clearRect(0, 0, innerWidth, innerHeight);
@@ -559,6 +565,11 @@ function drawLink(leftEntryTitle, rightEntryTitle) {
     console.log("One of these entries doesn't exist: ", leftEntryTitle, rightEntryTitle);
   }
 }
+function getElementEntryPosition(title) {
+  let el = getEntryElement(title); // @ts-expect-error - it's not null
+  let elPos = Object.entries(el.parentElement.children).findIndex((e) => e[1].innerHTML === title);
+  return elPos;
+}
 function getEntryElement(title) {
   let entryEls = Object.entries(document.querySelectorAll(".column")).map((colEl) =>
     Object.entries(colEl[1].children).map((c) => c[1])
@@ -647,7 +658,6 @@ let focused;
 // runTests();
 entries = [...entries, ...getFromLocalStorage()];
 renderAndClear("Core");
-localStorage.clear();
 let clearButton = document.getElementById("clear-button");
 if (clearButton) {
   // it does exist, this if statement is just to get around TS's unhelpful check here
@@ -659,3 +669,69 @@ if (clearButton) {
 window.addEventListener("resize", () => {
   drawLinks();
 });
+let currentVerticalPos = 1;
+window.addEventListener("keydown", (e) => {
+  let entEl = getEntryElement(focused.title);
+  if (e.key === "ArrowRight") {
+    let childColChildren = Object.entries(document.querySelectorAll(".column"))[3][1].children;
+    if (childColChildren.length > 0) {
+      renderAndClear(childColChildren[0].innerHTML);
+      currentVerticalPos = 1;
+    }
+  } else if (e.key === "ArrowUp") {
+    // let centerColChildren = Object.entries(document.querySelectorAll(".column"))[2][1].children;
+    // if (centerColChildren.length > 0) {
+    //   renderAndClear(centerColChildren[currentVerticalPos].innerHTML);
+    //   if (currentVerticalPos > 1) {
+    //     currentVerticalPos--;
+    //   } else {
+    //     currentVerticalPos = centerColChildren.length - 1;
+    //   }
+    //   renderAndClear(centerColChildren[currentVerticalPos].innerHTML);
+    // }
+    // console.log("ya", currentVerticalPos);
+  } else if (e.key === "ArrowLeft") {
+    let parentColChildren = Object.entries(document.querySelectorAll(".column"))[1][1].children;
+    if (parentColChildren.length > 0) {
+      renderAndClear(parentColChildren[0].innerHTML);
+      currentVerticalPos = 1;
+    }
+  } else if (e.key === "ArrowDown") {
+    let centerColChildren = Object.entries(document.querySelectorAll(".column"))[2][1].children;
+    if (centerColChildren.length > 1) {
+      console.log(currentVerticalPos);
+      if (currentVerticalPos <= centerColChildren.length - 1) {
+        renderAndClear(centerColChildren[currentVerticalPos].innerHTML);
+        currentVerticalPos++;
+      } else {
+        renderAndClear(centerColChildren[1].innerHTML);
+        currentVerticalPos = 0;
+        currentVerticalPos++;
+        // currentVerticalPos = 0;
+      }
+      // else if (currentVerticalPos === centerColChildren.length - 1) currentVerticalPos++;
+      // else currentVerticalPos = 1;
+    }
+  }
+});
+function animateEntry(entry1Title, dur) {
+  console.log(getEntryElement(entry1Title));
+  getEntryElement(entry1Title)?.animate(
+    [
+      {
+        // transform: "translateY(3px)",
+        opacity: 0,
+        scale: 0,
+      },
+      {
+        // transform: "translateY(0)",
+        opacity: 1,
+        scale: 1,
+      },
+    ],
+    {
+      duration: dur,
+      iterations: 1,
+    }
+  );
+}
