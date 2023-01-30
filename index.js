@@ -54,21 +54,21 @@ function removeFromArrayIfPresent(thingToRemove, arrayToRemoveFrom) {
   }
 }
 /**
+ * Ensures that something is not within the array before trying to add it; otherwise, does nothing.
+ * @param {any} thingToAdd
+ * @param {any[]} arrayToAddTo
+ */
+function addUnlessAlreadyPresent(thingToAdd, arrayToAddTo) {
+  if (!arrayToAddTo.includes(thingToAdd)) {
+    arrayToAddTo.push(thingToAdd);
+  }
+}
+/**
  * A helper function that returns options for adding relations to entries.
  * @param {string} entryTitle the title of the entry to give a relation to
  * @returns {{aChild(childTitle: string), aParent(parentTitle: string)}}
  */
 function give(entryTitle) {
-  /**
-   * Ensures that something is not within the array before trying to add it; otherwise, does nothing.
-   * @param {any} thingToAdd
-   * @param {any[]} arrayToAddTo
-   */
-  function addUnlessAlreadyPresent(thingToAdd, arrayToAddTo) {
-    if (!arrayToAddTo.includes(thingToAdd)) {
-      arrayToAddTo.push(thingToAdd);
-    }
-  }
   return {
     aChild(childTitle) {
       removeFromArrayIfPresent(childTitle, entry(entryTitle).parentTitles);
@@ -431,6 +431,7 @@ function runTests() {
 function renderAndClear(focusedTitle) {
   clearColumns();
   renderEntries(focusedTitle);
+  updateCurrentPath(focusedTitle);
 }
 function drawLinks() {
   context.clearRect(0, 0, innerWidth, innerHeight);
@@ -498,7 +499,6 @@ function createElementForEntry(
           .includes(tToUse)
       ) {
         isDupe = true;
-        console.log(tToUse);
       }
     });
     if (!isDupe) {
@@ -585,7 +585,7 @@ function findNumpadCoords(element) {
   nine = { x: three.x, y: seven.y };
   return { one, two, three, four, five, six, seven, eight, nine };
 }
-function a(e) {
+function renderr(e) {
   if (e.target.id !== "inputter") renderAndClear(focused.title);
   let inputter = document.getElementById("inputter");
   if (!inputter) {
@@ -597,18 +597,22 @@ function a(e) {
   if (!inputter.onkeydown) {
     inputter.onkeydown = (e2) => {
       if (e2.key === "Enter") {
-        if (col === "d") {
-          // @ts-expect-error
-          give(focused.title).aChild(inputter.value);
-          save(entries);
-          entries = [...entries, ...getFromLocalStorage()];
-        } else if (col === "u") {
-          // @ts-expect-error
-          give(focused.title).aParent(inputter.value);
-          save(entries);
-          entries = [...entries, ...getFromLocalStorage()];
+        // @ts-expect-error
+        if (inputter.value !== "") {
+          if (col === "d") {
+            // @ts-expect-error
+            give(focused.title).aChild(inputter.value);
+            save(entries);
+            entries = [...entries, ...getFromLocalStorage()];
+          } else if (col === "u") {
+            // @ts-expect-error
+            give(focused.title).aParent(inputter.value);
+            save(entries);
+            entries = [...entries, ...getFromLocalStorage()];
+          }
+          updateCurrentPath(focused.title);
+          renderr(e);
         }
-        a(e);
       }
     };
   }
@@ -634,7 +638,7 @@ function prepareScreen() {
   context.lineWidth = 3;
   Object.entries(document.querySelectorAll(".column"))
     .map((el) => el[1])
-    .forEach((el) => el.addEventListener("click", (e) => a(e)));
+    .forEach((el) => el.addEventListener("click", (e) => renderr(e)));
 }
 let canvas = document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D(); // this ternary is preventing TS errors about it possibly being null, which is untrue.
@@ -654,3 +658,64 @@ if (clearButton) {
   };
   document.querySelectorAll(".header")[1].appendChild(clearButton);
 }
+function updateCurrentPath(/** @type {string} */ newFocusedTitle) {
+  const header = document.querySelectorAll(".header")[0];
+  function calcPath(fromTitle) {
+    let focused = entry(fromTitle);
+    let done = [];
+    let maxFound = [];
+    focused.parentTitles.forEach((pT) => {
+      console.log("try", pT);
+      let currentPotential = [];
+      if (entry(pT).parentTitles.length > 0) {
+        entry(pT).parentTitles.forEach((gpT) => {
+          console.log("try", gpT);
+          if (entry(gpT).parentTitles.length > 0) {
+            entry(gpT).parentTitles.forEach((ggpT) => {
+              console.log("try", ggpT);
+              addUnlessAlreadyPresent(pT, currentPotential);
+              addUnlessAlreadyPresent(gpT, currentPotential);
+              addUnlessAlreadyPresent(ggpT, currentPotential);
+            });
+          } else {
+            console.log(gpT, "failed");
+            console.log(pT, "also failed");
+            addUnlessAlreadyPresent(gpT, currentPotential);
+            addUnlessAlreadyPresent(pT, currentPotential);
+          }
+        });
+      } else {
+        console.log(pT, "failed");
+        addUnlessAlreadyPresent(pT, currentPotential);
+      }
+      console.log("``````````````");
+      if (currentPotential.length > maxFound.length) {
+        maxFound = currentPotential;
+      }
+    });
+    if (maxFound.length > 1) {
+      maxFound.push(fromTitle);
+      console.log("maxfound", maxFound);
+      // @ts-ignore
+      maxFound = maxFound.join(" > ");
+      return maxFound;
+    } else if (maxFound.length === 1) {
+      return maxFound + " > " + fromTitle;
+    } else {
+      return fromTitle;
+    }
+    // >>>> find the longest chain upward:
+    // first, get the parent entries, and add each title to the "done" array so that they aren't re-done:
+    // let parentEntries = focused.parentTitles
+    //   .map((pT) => {
+    //     done.push(pT);
+    //     return entry(pT);
+    //   })
+    //   // ensure that you aren't in a loop
+    //   .filter((e) => !done.includes(e.title));
+    // parentEntries.map(pE => );
+    // return p.join(" > ");
+  }
+  header.innerHTML = calcPath(newFocusedTitle);
+}
+function updateRecents() {}
