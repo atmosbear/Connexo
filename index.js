@@ -431,7 +431,6 @@ function runTests() {
 function renderAndClear(focusedTitle) {
   clearColumns();
   renderEntries(focusedTitle);
-  updateCurrentPath(focusedTitle);
 }
 function drawLinks() {
   context.clearRect(0, 0, innerWidth, innerHeight);
@@ -610,7 +609,6 @@ function renderr(e) {
             save(entries);
             entries = [...entries, ...getFromLocalStorage()];
           }
-          updateCurrentPath(focused.title);
           renderr(e);
         }
       }
@@ -658,64 +656,3 @@ if (clearButton) {
   };
   document.querySelectorAll(".header")[1].appendChild(clearButton);
 }
-function updateCurrentPath(/** @type {string} */ newFocusedTitle) {
-  const header = document.querySelectorAll(".header")[0];
-  function calcPath(fromTitle) {
-    let focused = entry(fromTitle);
-    let done = [];
-    let maxFound = [];
-    focused.parentTitles.forEach((pT) => {
-      console.log("try", pT);
-      let currentPotential = [];
-      if (entry(pT).parentTitles.length > 0) {
-        entry(pT).parentTitles.forEach((gpT) => {
-          console.log("try", gpT);
-          if (entry(gpT).parentTitles.length > 0) {
-            entry(gpT).parentTitles.forEach((ggpT) => {
-              console.log("try", ggpT);
-              addUnlessAlreadyPresent(pT, currentPotential);
-              addUnlessAlreadyPresent(gpT, currentPotential);
-              addUnlessAlreadyPresent(ggpT, currentPotential);
-            });
-          } else {
-            console.log(gpT, "failed");
-            console.log(pT, "also failed");
-            addUnlessAlreadyPresent(gpT, currentPotential);
-            addUnlessAlreadyPresent(pT, currentPotential);
-          }
-        });
-      } else {
-        console.log(pT, "failed");
-        addUnlessAlreadyPresent(pT, currentPotential);
-      }
-      console.log("``````````````");
-      if (currentPotential.length > maxFound.length) {
-        maxFound = currentPotential;
-      }
-    });
-    if (maxFound.length > 1) {
-      maxFound.push(fromTitle);
-      console.log("maxfound", maxFound);
-      // @ts-ignore
-      maxFound = maxFound.join(" > ");
-      return maxFound;
-    } else if (maxFound.length === 1) {
-      return maxFound + " > " + fromTitle;
-    } else {
-      return fromTitle;
-    }
-    // >>>> find the longest chain upward:
-    // first, get the parent entries, and add each title to the "done" array so that they aren't re-done:
-    // let parentEntries = focused.parentTitles
-    //   .map((pT) => {
-    //     done.push(pT);
-    //     return entry(pT);
-    //   })
-    //   // ensure that you aren't in a loop
-    //   .filter((e) => !done.includes(e.title));
-    // parentEntries.map(pE => );
-    // return p.join(" > ");
-  }
-  header.innerHTML = calcPath(newFocusedTitle);
-}
-function updateRecents() {}
