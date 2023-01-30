@@ -398,6 +398,23 @@ function runTests() {
     give("G").aParent("N");
     renderEntries("A");
   }
+  function test_no_render_dupes() {
+    clearColumns();
+    give("A").aChild("B");
+    give("B").aChild("C");
+    give("B").aChild("D");
+    give("B").aParent("E");
+    give("A").aParent("F");
+    give("F").aChild("G");
+    give("F").aParent("K");
+    give("E").aParent("H");
+    give("E").aChild("L");
+    give("H").aParent("I");
+    give("D").aParent("J");
+    give("G").aChild("M");
+    give("G").aParent("N");
+    renderEntries("A");
+  }
   // run all tests
   [
     test_entry,
@@ -468,20 +485,38 @@ function createElementForEntry(
     col = 2;
   }
   if (col !== undefined && col !== null) {
-    let entryElement = document.createElement("div");
-    if (relationToFocused === "self") entryElement.classList.add("focused");
-    entryElement.classList.add("entry");
-    entryElement.innerText = altTitle ?? actualTitle;
-    entryElement.onclick = (e) => {
-      if (e.altKey) {
-        deleteEntry(actualTitle);
-      } else {
-        renderAndClear(actualTitle);
+    let isDupe = false;
+    let columns = document.querySelectorAll(".column");
+    columns.forEach((column) => {
+      let tToUse = altTitle ?? actualTitle;
+      if (
+        Object.entries(column.children)
+          .map((child, i) => {
+            Object.entries(column.children).splice(Object.entries(column.children).indexOf(child), 1);
+            return child[1].innerHTML;
+          })
+          .includes(tToUse)
+      ) {
+        isDupe = true;
+        console.log(tToUse);
       }
-    };
-    let columnElement = document.querySelectorAll(".column")[col];
-    columnElement.appendChild(entryElement);
-    return entryElement;
+    });
+    if (!isDupe) {
+      let entryElement = document.createElement("div");
+      if (relationToFocused === "self") entryElement.classList.add("focused");
+      entryElement.classList.add("entry");
+      entryElement.innerText = altTitle ?? actualTitle;
+      entryElement.onclick = (e) => {
+        if (e.altKey) {
+          deleteEntry(actualTitle);
+        } else {
+          renderAndClear(actualTitle);
+        }
+      };
+      let columnElement = document.querySelectorAll(".column")[col];
+      columnElement.appendChild(entryElement);
+      return entryElement;
+    }
   }
   return undefined;
 }
