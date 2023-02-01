@@ -673,6 +673,45 @@ if (clearButton) {
     document.location.reload();
   };
 }
+let exportButton = document.getElementById("export-button");
+if (exportButton) {
+  // it does exist, this if statement is just to get around TS's unhelpful check here
+  exportButton.onclick = (e) => {
+    let stringed = save(entries);
+    var a = document.createElement("a");
+    function saveData(data, fileName) {
+      var json = JSON.stringify(data),
+        blob = new Blob([json], { type: "json" }),
+        url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+    saveData(stringed, "EXPORTED.json");
+  };
+}
+let importButton = document.getElementById("import-button");
+if (importButton) {
+  // it does exist, this if statement is just to get around TS's unhelpful check here
+  importButton.onclick = (e) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = (e) => {
+      // @ts-expect-error - it is not null.
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = (readerEvent) => {
+        const content = reader.result;
+        // @ts-expect-error - it is not null.
+        entries = JSON.parse(JSON.parse(content));
+        save(entries);
+      };
+    };
+    input.click();
+  };
+}
 window.addEventListener("resize", () => {
   drawLinks();
 });
