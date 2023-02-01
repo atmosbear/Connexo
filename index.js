@@ -12,7 +12,7 @@ function entry(title) {
     return alreadyExistingEntry;
   } else {
     const newEntry = { title, parentTitles: [], childrenTitles: [] };
-    entries.push(newEntry);
+    addUnlessAlreadyPresent(newEntry, entries);
     return newEntry;
   }
 }
@@ -33,6 +33,7 @@ function save(entries) {
  */
 function getFromLocalStorage() {
   let newEntries;
+  console.log("e");
   const data = localStorage.getItem("entries");
   try {
     if (data) newEntries = JSON.parse(data);
@@ -431,10 +432,8 @@ function runTests() {
 function renderAndClear(focusedTitle) {
   clearColumns();
   renderEntries(focusedTitle);
-
-  console.log(entries);
+  console.log("ENTRIES", entries);
   entries.forEach((entry, i) => {
-    console.log(i);
     animateEntry(entry.title, 100 + i * 100);
   });
 }
@@ -612,13 +611,21 @@ function renderr(e) {
           if (col === "d") {
             // @ts-expect-error
             give(focused.title).aChild(inputter.value);
+            let entryTitles = entries.map((ent) => ent.title);
+            let noDupes = getFromLocalStorage().filter((ent) => !entryTitles.includes(ent.title));
+            noDupes.forEach((ent) => {
+              entries.push(ent);
+            });
             save(entries);
-            entries = [...entries, ...getFromLocalStorage()];
           } else if (col === "u") {
             // @ts-expect-error
             give(focused.title).aParent(inputter.value);
+            let entryTitles = entries.map((ent) => ent.title);
+            let noDupes = getFromLocalStorage().filter((ent) => !entryTitles.includes(ent.title));
+            noDupes.forEach((ent) => {
+              entries.push(ent);
+            });
             save(entries);
-            entries = [...entries, ...getFromLocalStorage()];
           }
           renderr(e);
         }
@@ -700,7 +707,6 @@ window.addEventListener("keydown", (e) => {
   }
 });
 function animateEntry(entry1Title, dur) {
-  console.log(getEntryElement(entry1Title));
   getEntryElement(entry1Title)?.animate(
     [
       {
