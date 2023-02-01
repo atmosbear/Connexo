@@ -655,11 +655,6 @@ function prepareScreen() {
     .map((el) => el[1])
     .forEach((el) => el.addEventListener("click", (e) => renderr(e)));
 }
-if (navigator.userAgent.indexOf("Edg") != -1) {
-  alert(
-    "I've detected you're using microsoft edge - buttons may not work on it, so if so, please switch to another browser! It's a bug I've yet to fix."
-  );
-}
 let canvas = document.querySelector("canvas") ?? document.createElement("canvas"); // this ternary is preventing TS errors about it possibly being null, which is untrue.
 let context = canvas.getContext("2d") ?? new CanvasRenderingContext2D(); // this ternary is preventing TS errors about it possibly being null, which is untrue.
 prepareScreen();
